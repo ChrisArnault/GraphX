@@ -52,7 +52,7 @@ edges = sqlContext.read.parquet(home + "/edges")
 s.show_step("Load the vertices and edges back.")
 
 # Create an identical GraphFrame.
-g = GraphFrame(vertices, edges)
+g = graphframes.GraphFrame(vertices, edges)
 s.show_step("Create a GraphFrame")
 
 g.vertices.show(10)
