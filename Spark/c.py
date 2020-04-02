@@ -9,28 +9,11 @@ import random
 import time
 
 import graphframes
-# from graphframes.examples import Graphs
 
 spark = SparkSession.builder.appName("GraphX").getOrCreate()
 spark.sparkContext.setLogLevel("ERROR")
 
 sqlContext = SQLContext(spark.sparkContext)
-
-num_vertices = 1000000
-num_edges =    1000000
-degree_max =  100
-distance_max = 0.1
-
-x = lambda : np.random.random()
-y = lambda : np.random.random()
-
-print("creating vertices")
-v = sqlContext.createDataFrame([(v_id, x(), y()) for v_id in range(num_vertices)], ["id", "x", "y"])
-
-"""
-    for vertex in vertices:
-        vertex.out_vertices = [v for v in random.sample(vertices, np.random.randint(0, np.sqrt(len(vertices)))) if vertex.dist(v) < distance_max]
-"""
 
 class Stepper(object):
     previous_time = None
@@ -79,22 +62,32 @@ def edge_it(n, last):
 
 
 
-# s = [(v, w) for v, w in edge_it(1000000000, 10)]
-# print(s)
+num_vertices = 1000000
+num_edges = num_vertices
+degree_max =  100
+distance_max = 0.1
 
-print("creating edges")
+x = lambda : np.random.random()
+y = lambda : np.random.random()
+
+s = Stepper()
+
+v = sqlContext.createDataFrame([(v_id, x(), y()) for v_id in range(num_vertices)], ["id", "x", "y"])
+s.show_step("creating vertices")
+
 e = sqlContext.createDataFrame([(v_id, w_id) for v_id, w_id in edge_it(num_vertices, num_edges)], ["src", "dst"])
+s.show_step("creating edges")
 
-print("Create a GraphFrame")
 g = graphframes.GraphFrame(v, e)
+s.show_step("Create a GraphFrame")
 
-print("Display the vertex and edge DataFrames")
 g.vertices.show(10)
 g.edges.show(10)
+s.show_step("Display the vertex and edge DataFrames")
 
-print("Get a DataFrame with columns id and degree")
 vertexDegrees = g.degrees
 vertexDegrees.show()
+s.show_step("Get a DataFrame with columns id and degree")
 
 # Find the youngest user's age in the graph.
 # This queries the vertex DataFrame.
@@ -105,7 +98,6 @@ vertexDegrees.show()
 # numFollows = g.edges.filter("relationship = 'follow'").count()
 
 # print("numFollows=", numFollows)
-
 
 
 
