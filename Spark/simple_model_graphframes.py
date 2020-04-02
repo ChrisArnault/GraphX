@@ -10,17 +10,10 @@ import time
 
 import graphframes
 
-
-num_vertices = 10000000
-num_edges = num_vertices
-degree_max =  1000
-distance_max = 0.1
-
-
+from simple_model_conf import *
 
 spark = SparkSession.builder.appName("GraphX").getOrCreate()
 spark.sparkContext.setLogLevel("ERROR")
-
 sqlContext = SQLContext(spark.sparkContext)
 
 class Stepper(object):
@@ -52,36 +45,14 @@ class Stepper(object):
 
         return delta
 
-def edge_it(n, last):
-    v = 0
-    while v < n:
-        m = random.randint(0, int(degree_max))
-        j = 0
-        while j < m:
-            j += 1
-            w = random.randint(0, n)
-            # print(v, w)
-            if v > last:
-                break
-            yield (v, w)
-        if v > last:
-            break
-        v += 1
-
-
-
-x = lambda : np.random.random()
-y = lambda : np.random.random()
-
 s = Stepper()
 
-v = sqlContext.createDataFrame([(v_id, x(), y()) for v_id in range(num_vertices)], ["id", "x", "y"])
-s.show_step("creating vertices")
+vertices = sqlContext.read.parquet(home + "/vertices")
+edges = sqlContext.read.parquet(home + "/edges")
+s.show_step("Load the vertices and edges back.")
 
-e = sqlContext.createDataFrame([(v_id, w_id) for v_id, w_id in edge_it(num_vertices, num_edges)], ["src", "dst"])
-s.show_step("creating edges")
-
-g = graphframes.GraphFrame(v, e)
+# Create an identical GraphFrame.
+g = GraphFrame(vertices, edges)
 s.show_step("Create a GraphFrame")
 
 g.vertices.show(10)
@@ -102,8 +73,3 @@ s.show_step("Get a DataFrame with columns id and degree")
 # numFollows = g.edges.filter("relationship = 'follow'").count()
 
 # print("numFollows=", numFollows)
-
-
-
-
-

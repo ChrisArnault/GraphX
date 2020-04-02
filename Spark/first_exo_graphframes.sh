@@ -9,6 +9,6 @@ time spark-submit \
   --total-executor-cores 85 \
   --executor-cores 17 \
   --executor-memory 29g \
-  a.py $*
+  first_exo_graphframes.py $*
 
 
