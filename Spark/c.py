@@ -10,6 +10,14 @@ import time
 
 import graphframes
 
+
+num_vertices = 10000000
+num_edges = num_vertices
+degree_max =  1000
+distance_max = 0.1
+
+
+
 spark = SparkSession.builder.appName("GraphX").getOrCreate()
 spark.sparkContext.setLogLevel("ERROR")
 
@@ -62,11 +70,6 @@ def edge_it(n, last):
 
 
 
-num_vertices = 1000000
-num_edges = num_vertices
-degree_max =  100
-distance_max = 0.1
-
 x = lambda : np.random.random()
 y = lambda : np.random.random()
 
@@ -86,6 +89,7 @@ g.edges.show(10)
 s.show_step("Display the vertex and edge DataFrames")
 
 vertexDegrees = g.degrees
+vertexDegrees.count()
 vertexDegrees.show()
 s.show_step("Get a DataFrame with columns id and degree")
 
