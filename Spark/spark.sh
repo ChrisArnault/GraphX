@@ -9,6 +9,6 @@ export SPARKCONF="--conf spark.mesos.principal=lsst \
   --executor-cores 17 \
   --executor-memory 29g"
 
-spark-submit $SPARKCONF a.py
+spark-submit $SPARKCONF c.py
 
 
