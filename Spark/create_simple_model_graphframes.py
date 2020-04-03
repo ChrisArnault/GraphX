@@ -7,7 +7,7 @@ from pyspark.sql import SQLContext
 
 import random
 import time
-
+import os
 import graphframes
 
 from simple_model_conf import *
@@ -46,6 +46,26 @@ class Stepper(object):
 
         return delta
 
+
+def get_file_size(dir, file):
+    import subprocess
+    cmd = "hdfs dfs -du -h {} | egrep {}".format(dir, file)
+    result = subprocess.check_output(cmd, shell=True).decode().split("\n")
+    for line in result:
+        if file in line:
+            a = line.split()
+            size = float(a[0])
+            scale = a[1]
+            if scale == 'K':
+                size *= 1.0/1024.0
+            elif scale == 'M':
+                size *= 1
+            elif scale == 'G':
+                size *= 1024
+            return size
+    return 0
+
+
 def edge_it(n, range=None):
     v = 0
     number = 0
@@ -70,13 +90,46 @@ def edge_it(n, range=None):
             break
 
 
+def batch_create(dir, file, build_values, columns):
+    previous_size = 0
+
+    s = Stepper()
+
+    for batch in range(loops):
+        values = [(v, x(), y()) for v in range(num_vertices)]
+        df = sqlContext.createDataFrame(values, ["id", "x", "y"])
+        df = df.cache()
+        df.count()
+        s.show_step("building the dataframe")
+
+        file_name = "{}/{}".format(home, file)
+        if batch == 0:
+            df.write.format("parquet").save(file_name)
+        else:
+            df.write.format("parquet").mode("append").save(file_name)
+        s.show_step("Write block")
+
+        new_size = get_file_size(file)
+        increment = new_size - previous_size
+        previous_size = new_size
+
+        print("file_size={} increment={}".format(new_size, increment))
+
+    df = spark.read.format(conf.file_format).load(conf.dest)
+    s.show_step("Read full file")
+
+    return df
+
+
+os.system("hdfs dfs -rm -r -f {}/{}".format(home, "vertices"))
+os.system("hdfs dfs -rm -r -f {}/{}".format(home, "edges"))
 
 x = lambda : np.random.random()
 y = lambda : np.random.random()
 
+vertex_values = lambda : [(v, x(), y()) for v in range(num_vertices)]
 s = Stepper()
-
-vertices = sqlContext.createDataFrame([(v_id, x(), y()) for v_id in range(num_vertices)], ["id", "x", "y"])
+vertices = batch_create(home, "vertices", vertex_values, ["id", "x", "y"]):
 s.show_step("creating vertices")
 
 """
@@ -85,15 +138,9 @@ not finished: accumulate vertices and edges by batches
 """
 
 edges = None
-step = 10000
-for start in range(0, num_edges, step):
-    print("creating edges start={} stop={}".format(start, start+step))
-    batch_edges = sqlContext.createDataFrame([(v_id, w_id) for v_id, w_id in edge_it(num_vertices, range=range(start, start+step))], ["src", "dst"])
-    if edges is None:
-        edges = batch_edges
-    else:
-        pass
 
+edge_values = lambda : [(v, w) for v, w in edge_it(num_vertices)]
+edges = batch_create(home, "edges", edge_values, ["src", "dst"]):
 s.show_step("creating edges")
 
 g = graphframes.GraphFrame(vertices, edges)

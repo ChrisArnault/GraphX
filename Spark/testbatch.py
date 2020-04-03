@@ -9,7 +9,6 @@ import numpy as np
 import os
 import time
 
-
 num_vertices = 1000000
 num_edges = num_vertices
 degree_max =  100
@@ -70,32 +69,6 @@ spark.sparkContext.setLogLevel("ERROR")
 sqlContext = SQLContext(spark.sparkContext)
 
 os.system("hdfs dfs -rm -r -f {}/{}".format(home, file))
-
-"""
-    for batch in range(conf.loops):
-        print("batch #{}".format(batch))
-
-        s = Stepper()
-        values = [(ra_value(), dec_value(), z_value()) for i in range(batch_size)]
-        df = spark.createDataFrame(values, ['ra', 'dec', 'z'])
-        df = df.repartition(conf.partitions, "ra")
-        df = df.cache()
-        df.count()
-        s.show_step("building the dataframe")
-
-        s = Stepper()
-        if batch == 0:
-            df.write.format(conf.file_format).save(conf.dest)
-        else:
-            df.write.format(conf.file_format).mode("append").save(conf.dest)
-        s.show_step("Write block")
-
-        new_size = get_file_size(conf)
-        increment = new_size - previous_size
-        previous_size = new_size
-
-        print("file_size={} increment={}".format(new_size, increment))
-"""
 
 s = Stepper()
 

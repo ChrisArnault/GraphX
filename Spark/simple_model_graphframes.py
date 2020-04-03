@@ -52,7 +52,7 @@ edges = sqlContext.read.parquet(home + "/edges")
 s.show_step("Load the vertices and edges back.")
 
 # Create an identical GraphFrame.
-g = graphframes.GraphFrame(vertices, edges)
+g = GraphFrame(vertices, edges)
 s.show_step("Create a GraphFrame")
 
 g.vertices.show(10)
@@ -63,11 +63,6 @@ vertexDegrees = g.degrees
 vertexDegrees.count()
 vertexDegrees.show()
 s.show_step("Get a DataFrame with columns id and degree")
-
-triangle = g.triangleCount()
-triangle.count()
-triangle.show()
-s.show_step("Count triangles")
 
 # Find the youngest user's age in the graph.
 # This queries the vertex DataFrame.
