@@ -46,8 +46,10 @@ class Stepper(object):
 
         return delta
 
-def edge_it(n, last):
+def edge_it(n, range=None):
     v = 0
+    number = 0
+    finished = False
     while v < n:
         m = random.randint(0, int(degree_max))
         j = 0
@@ -55,12 +57,17 @@ def edge_it(n, last):
             j += 1
             w = random.randint(0, n)
             # print(v, w)
-            if v > last:
+            if range is None or (range is not None and number in range):
+                yield (v, w)
+
+            if range is not None and number >= range.stop:
+                finished = False
                 break
-            yield (v, w)
-        if v > last:
-            break
+
+            number += 1
         v += 1
+        if finished:
+            break
 
 
 
@@ -72,7 +79,21 @@ s = Stepper()
 vertices = sqlContext.createDataFrame([(v_id, x(), y()) for v_id in range(num_vertices)], ["id", "x", "y"])
 s.show_step("creating vertices")
 
-edges = sqlContext.createDataFrame([(v_id, w_id) for v_id, w_id in edge_it(num_vertices, num_edges)], ["src", "dst"])
+"""
+not finished: accumulate vertices and edges by batches
+...
+"""
+
+edges = None
+step = 10000
+for start in range(0, num_edges, step):
+    print("creating edges start={} stop={}".format(start, start+step))
+    batch_edges = sqlContext.createDataFrame([(v_id, w_id) for v_id, w_id in edge_it(num_vertices, range=range(start, start+step))], ["src", "dst"])
+    if edges is None:
+        edges = batch_edges
+    else:
+        pass
+
 s.show_step("creating edges")
 
 g = graphframes.GraphFrame(vertices, edges)

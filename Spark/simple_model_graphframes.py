@@ -64,6 +64,11 @@ vertexDegrees.count()
 vertexDegrees.show()
 s.show_step("Get a DataFrame with columns id and degree")
 
+triangle = g.triangleCount()
+triangle.count()
+triangle.show()
+s.show_step("Count triangles")
+
 # Find the youngest user's age in the graph.
 # This queries the vertex DataFrame.
 # g.vertices.groupBy().min("x").show()
