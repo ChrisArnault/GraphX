@@ -4,12 +4,13 @@ from pyspark.sql.types import *
 from pyspark.sql import SQLContext
 
 from graphframes.examples import Graphs
+import numpy as np
 
 import os
 import time
 
 
-num_vertices = 1000
+num_vertices = 1000000
 num_edges = num_vertices
 degree_max =  100
 distance_max = 0.1
@@ -47,10 +48,10 @@ class Stepper(object):
 
 def get_file_size(file):
     import subprocess
-    cmd = "hdfs dfs -du -h {}} | egrep {}/{}".format(home, file)
+    cmd = "hdfs dfs -du -h {} | egrep {}".format(home, file)
     result = subprocess.check_output(cmd, shell=True).decode().split("\n")
     for line in result:
-        if conf.dest in line:
+        if file in line:
             a = line.split()
             size = float(a[0])
             scale = a[1]
@@ -104,16 +105,17 @@ loops = 100
 previous_size = 0
 
 for batch in range(loops):
-    values = [(v, x(), y()) for v_id in range(num_vertices)]
+    values = [(v, x(), y()) for v in range(num_vertices)]
     df = sqlContext.createDataFrame(values, ["id", "x", "y"])
     df = df.cache()
     df.count()
     s.show_step("building the dataframe")
 
+    file_name = "{}/{}".format(home, file)
     if batch == 0:
-        df.write.format("parquet").save(home)
+        df.write.format("parquet").save(file_name)
     else:
-        df.write.format("parquet").mode("append").save(home)
+        df.write.format("parquet").mode("append").save(file_name)
     s.show_step("Write block")
 
     new_size = get_file_size(file)
