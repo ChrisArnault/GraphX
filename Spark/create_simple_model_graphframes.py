@@ -14,6 +14,7 @@ from simple_model_conf import *
 
 spark = SparkSession.builder.appName("GraphX").getOrCreate()
 spark.sparkContext.setLogLevel("ERROR")
+spark.sparkContext.setCheckpointDir("/tmp")
 
 sqlContext = SQLContext(spark.sparkContext)
 
