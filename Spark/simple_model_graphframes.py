@@ -15,6 +15,7 @@ from simple_model_conf import *
 spark = SparkSession.builder.appName("GraphX").getOrCreate()
 spark.sparkContext.setLogLevel("ERROR")
 sqlContext = SQLContext(spark.sparkContext)
+spark.sparkContext.setCheckpointDir("/tmp")
 
 class Stepper(object):
     previous_time = None

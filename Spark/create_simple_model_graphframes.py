@@ -121,8 +121,8 @@ y = lambda : np.random.random()
 vertex_values = lambda start, stop: [(v, x(), y()) for v in range(start, stop)]
 s = Stepper()
 
-# vertices = batch_create(home, "vertices", vertex_values, ["id", "x", "y"], num_vertices)
-vertices = spark.read.format("parquet").load("{}/{}".format(home, "vertices"))
+vertices = batch_create(home, "vertices", vertex_values, ["id", "x", "y"], num_vertices)
+# vertices = spark.read.format("parquet").load("{}/{}".format(home, "vertices"))
 s.show_step("creating vertices")
 
 """
@@ -144,3 +144,4 @@ s.show_step("count GraphFrame")
 
 g.vertices.show()
 g.edges.show()
+
