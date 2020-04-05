@@ -15,6 +15,8 @@ from simple_model_conf import *
 spark = SparkSession.builder.appName("GraphX").getOrCreate()
 spark.sparkContext.setLogLevel("ERROR")
 
+# .set("spark.local.dir", "/tmp/spark-temp");
+
 sqlContext = SQLContext(spark.sparkContext)
 
 class Stepper(object):
@@ -78,7 +80,7 @@ def edge_it(n, range):
             yield (v, w)
 
 
-def batch_create(dir, file, build_values, columns, total_rows):
+def batch_create(dir, file, build_values, columns, total_rows, batches):
     os.system("hdfs dfs -rm -r -f {}/{}".format(dir, file))
     file_name = "{}/{}".format(dir, file)
 
@@ -121,8 +123,8 @@ y = lambda : np.random.random()
 vertex_values = lambda start, stop: [(v, x(), y()) for v in range(start, stop)]
 s = Stepper()
 
-vertices = batch_create(home, "vertices", vertex_values, ["id", "x", "y"], num_vertices)
-# vertices = spark.read.format("parquet").load("{}/{}".format(home, "vertices"))
+# vertices = batch_create(home, "vertices", vertex_values, ["id", "x", "y"], num_vertices, batch_vertices)
+vertices = spark.read.format("parquet").load("{}/{}".format(home, "vertices"))
 s.show_step("creating vertices")
 
 """
@@ -133,7 +135,7 @@ not finished: accumulate vertices and edges by batches
 edges = None
 
 edge_values = lambda start, stop : [(v, w) for v, w in edge_it(num_vertices, range(num_edges))]
-edges = batch_create(home, "edges", edge_values, ["src", "dst"], num_edges)
+edges = batch_create(home, "edges", edge_values, ["src", "dst"], num_edges, batch_edges)
 s.show_step("creating edges")
 
 g = graphframes.GraphFrame(vertices, edges)
