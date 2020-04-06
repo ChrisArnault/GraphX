@@ -16,6 +16,8 @@ spark = SparkSession.builder.appName("GraphX").getOrCreate()
 spark.sparkContext.setLogLevel("ERROR")
 spark.sparkContext.setCheckpointDir("/tmp")
 
+# .set("spark.local.dir", "/tmp/spark-temp");
+
 sqlContext = SQLContext(spark.sparkContext)
 
 class Stepper(object):
@@ -67,70 +69,63 @@ def get_file_size(dir, file):
     return 0
 
 
-def edge_it(n, range=None):
-    v = 0
-    number = 0
-    finished = False
-    while v < n:
+def edge_it(n, range):
+    for i in range:
+        v = random.randint(0, n)
         m = random.randint(0, int(degree_max))
         j = 0
         while j < m:
             j += 1
             w = random.randint(0, n)
             # print(v, w)
-            if range is None or (range is not None and number in range):
-                yield (v, w)
-
-            if range is not None and number >= range.stop:
-                finished = False
-                break
-
-            number += 1
-        v += 1
-        if finished:
-            break
+            yield (v, w)
 
 
-def batch_create(dir, file, build_values, columns):
+def batch_create(dir, file, build_values, columns, total_rows, batches):
+    os.system("hdfs dfs -rm -r -f {}/{}".format(dir, file))
+    file_name = "{}/{}".format(dir, file)
+
     previous_size = 0
 
+    loops = batches
+    rows = int(total_rows / loops)
+    row = 0
+    
     s = Stepper()
 
     for batch in range(loops):
-        values = [(v, x(), y()) for v in range(num_vertices)]
-        df = sqlContext.createDataFrame(values, ["id", "x", "y"])
+        print("range ", row, row + rows)
+        df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
         df = df.cache()
         df.count()
         s.show_step("building the dataframe")
 
-        file_name = "{}/{}".format(home, file)
         if batch == 0:
             df.write.format("parquet").save(file_name)
         else:
             df.write.format("parquet").mode("append").save(file_name)
         s.show_step("Write block")
 
-        new_size = get_file_size(file)
+        new_size = get_file_size(dir, file)
         increment = new_size - previous_size
         previous_size = new_size
-
+        row += rows
         print("file_size={} increment={}".format(new_size, increment))
 
-    df = spark.read.format(conf.file_format).load(conf.dest)
+    df = spark.read.format("parquet").load(file_name)
     s.show_step("Read full file")
 
     return df
 
 
-os.system("hdfs dfs -rm -r -f {}/{}".format(home, "vertices"))
-os.system("hdfs dfs -rm -r -f {}/{}".format(home, "edges"))
-
 x = lambda : np.random.random()
 y = lambda : np.random.random()
 
-vertex_values = lambda : [(v, x(), y()) for v in range(num_vertices)]
+vertex_values = lambda start, stop: [(v, x(), y()) for v in range(start, stop)]
 s = Stepper()
-vertices = batch_create(home, "vertices", vertex_values, ["id", "x", "y"]):
+
+# vertices = batch_create(home, "vertices", vertex_values, ["id", "x", "y"], num_vertices, batch_vertices)
+vertices = spark.read.format("parquet").load("{}/{}".format(home, "vertices"))
 s.show_step("creating vertices")
 
 """
@@ -140,13 +135,16 @@ not finished: accumulate vertices and edges by batches
 
 edges = None
 
-edge_values = lambda : [(v, w) for v, w in edge_it(num_vertices)]
-edges = batch_create(home, "edges", edge_values, ["src", "dst"]):
+edge_values = lambda start, stop : [(v, w) for v, w in edge_it(num_vertices, range(num_edges))]
+edges = batch_create(home, "edges", edge_values, ["src", "dst"], num_edges, batch_edges)
 s.show_step("creating edges")
 
 g = graphframes.GraphFrame(vertices, edges)
 s.show_step("Create a GraphFrame")
 
-g.vertices.write.parquet(home + "/vertices")
-g.edges.write.parquet(home + "/edges")
-s.show_step("Save the GraphFrame")
+print("count:", g.vertices.count(), g.edges.count())
+s.show_step("count GraphFrame")
+
+g.vertices.show()
+g.edges.show()
+

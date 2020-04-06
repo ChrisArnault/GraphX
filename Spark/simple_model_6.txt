@@ -1,5 +1,12 @@
--------------------------------- creating vertices | 0h0m35.133s
--------------------------------- creating edges | 0h20m29.334s
--------------------------------- Create a GraphFrame | 0h0m0.035s
--------------------------------- Save the GraphFrame | 0h0m16.637s
+-------------------------------- creating vertices | 0h8m6.487s
+-------------------------------- creating edges | 3h33h38.011s
+-------------------------------- Create a GraphFrame | 0h0m0.032s
+count: 1000000 499863120
+-------------------------------- count GraphFrame | 0h0m8.481s
+
+
+-------------------------------- Load the vertices and edges back. | 0h0m45.537s
+-------------------------------- Create a GraphFrame | 0h0m0.055s
+-------------------------------- Get a DataFrame with columns id and degree | 0h1m35.683s
+
 

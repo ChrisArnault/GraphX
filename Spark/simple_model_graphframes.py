@@ -15,6 +15,7 @@ from simple_model_conf import *
 spark = SparkSession.builder.appName("GraphX").getOrCreate()
 spark.sparkContext.setLogLevel("ERROR")
 sqlContext = SQLContext(spark.sparkContext)
+spark.sparkContext.setCheckpointDir("/tmp")
 
 class Stepper(object):
     previous_time = None
@@ -52,7 +53,7 @@ edges = sqlContext.read.parquet(home + "/edges")
 s.show_step("Load the vertices and edges back.")
 
 # Create an identical GraphFrame.
-g = GraphFrame(vertices, edges)
+g = graphframes.GraphFrame(vertices, edges)
 s.show_step("Create a GraphFrame")
 
 g.vertices.show(10)
@@ -63,6 +64,12 @@ vertexDegrees = g.degrees
 vertexDegrees.count()
 vertexDegrees.show()
 s.show_step("Get a DataFrame with columns id and degree")
+
+triangles = g.triangleCount()
+c = triangles.count()
+triangles.show()
+s.show_step("Get triangle count", c)
+
 
 # Find the youngest user's age in the graph.
 # This queries the vertex DataFrame.

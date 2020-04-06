@@ -1,4 +1,5 @@
 
+export MESOS_SANDBOX="/spark_dir/spark_tmp"
 export SPARKCONF="--conf spark.mesos.principal=lsst \
   --conf spark.mesos.secret=secret \
   --conf spark.mesos.role=lsst \
