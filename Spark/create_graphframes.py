@@ -43,28 +43,37 @@ class Conf(object):
     def set(self):
         for i, arg in enumerate(sys.argv[1:]):
             a = arg.split("=")
-            print(i, arg, a)
+            # print(i, arg, a)
             key = a[0]
-            if key == "vertices":
+            if key == "vertices" or key == "N" or key == "n":
                 self.vertices = int(a[1])
-            elif key == "edges":
+            elif key == "edges" or key == "E" or key == "e":
                 self.edges = int(a[1])
-            elif key == "batches_vertices":
+            elif key == "batches_vertices" or key == "BN" or key == "bn":
                 self.batches_vertices = int(a[1])
-            elif key == "batches_edges":
+            elif key == "batches_edges" or key == "BE" or key == "be":
                 self.batches_edges = int(a[1])
-            elif key == "degree_max":
+            elif key == "degree_max" or key == "D" or key == "d":
                 self.degree_max = int(a[1])
-            elif key == "batch_size":
-                self.batch_size = int(a[1])
-            elif key == "partitions":
+            elif key == "partitions" or key == "P" or key == "p":
                 self.partitions = int(a[1])
-            elif key == "file_format":
-                self.file_format = a[1]
-            elif key == "name":
+            elif key == "name" or key == "F" or key == "f":
                 self.name = a[1]
-            elif key == "read_vertices":
-                self.read_vertices = bool(a[1])
+            elif key == "read_vertices" or key == "R" or key == "r":
+                self.read_vertices = True
+            elif key[:2] == "-h" or key[0] == "h":
+                print('''
+> python create_graphfames.py 
+  vertices|N = 1000
+  edges|E = 1000
+  batches_vertices|BN = 1
+  batches_edges|BE = 1
+  degree_max|D = 100
+  partitions|P = 1000
+  name|F = "test"
+  read_vertices|R = False
+                ''')
+                exit()
 
         self.graphs = "{}/{}".format(self.graphs_base, self.name)
         print("graphs={}".format(self.graphs))
