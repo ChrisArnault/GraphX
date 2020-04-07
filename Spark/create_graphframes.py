@@ -75,7 +75,13 @@ class Conf(object):
                 ''')
                 exit()
 
-        self.graphs = "{}/{}".format(self.graphs_base, self.name)
+
+        self.graphs = "{}/{}_N{}_BN{}_BE{}_D{}".format(self.graphs_base,
+                                                       self.name,
+                                                       self.vertices,
+                                                       self.batches_vertices,
+                                                       self.batches_edges,
+                                                       self.degree_max)
         print("graphs={}".format(self.graphs))
 
         [print(a, "=", getattr(conf, a)) for a in dir(conf) if a[0] != '_']
@@ -212,7 +218,15 @@ not finished: accumulate vertices and edges by batches
 edges = None
 
 edge_values = lambda start, stop : [(v, w) for v, w in edge_it(conf.vertices, range(start, stop), conf.degree_max)]
-edges = batch_create(conf.graphs, "edges", edge_values, ["src", "dst"], conf.vertices, conf.batches_edges)
+edges = batch_create(conf.graphs, "edges", edge_values, ["src", "dst"], conf.vertices, conf.batches_edges
+
+
+
+
+
+
+
+                     )
 s.show_step("creating edges")
 
 g = graphframes.GraphFrame(vertices, edges)
