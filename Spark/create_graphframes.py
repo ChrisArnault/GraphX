@@ -138,13 +138,10 @@ def get_file_size(dir, file):
     return 0
 
 
-def edge_it(vertices, range_edges, degree_max):
-    for i in range_edges:
-        v = random.randint(0, vertices)
+def edge_it(vertices, range_vertices, degree_max):
+    for v in range_vertices:
         m = random.randint(0, int(degree_max))
-        j = 0
-        while j < m:
-            j += 1
+        for j in range(m):
             w = random.randint(0, vertices)
             # print(v, w)
             yield (v, w)
@@ -214,8 +211,8 @@ not finished: accumulate vertices and edges by batches
 
 edges = None
 
-edge_values = lambda start, stop : [(v, w) for v, w in edge_it(conf.vertices, range(conf.edges), conf.degree_max)]
-edges = batch_create(conf.graphs, "edges", edge_values, ["src", "dst"], conf.edges, conf.batches_edges)
+edge_values = lambda start, stop : [(v, w) for v, w in edge_it(conf.vertices, range(start, stop), conf.degree_max)]
+edges = batch_create(conf.graphs, "edges", edge_values, ["src", "dst"], conf.vertices, conf.batches_edges)
 s.show_step("creating edges")
 
 g = graphframes.GraphFrame(vertices, edges)
