@@ -82,6 +82,8 @@ def edge_it(n, range):
 
 def batch_create(dir, file, build_values, columns, total_rows, batches):
     os.system("hdfs dfs -rm -r -f {}/{}".format(dir, file))
+
+    print("batch_create> ", dir, file, "total_rows=", total_rows, "batches=", batches)
     file_name = "{}/{}".format(dir, file)
 
     previous_size = 0
@@ -93,7 +95,7 @@ def batch_create(dir, file, build_values, columns, total_rows, batches):
     s = Stepper()
 
     for batch in range(loops):
-        print("range ", row, row + rows)
+        print("batch> ", batch, " range ", row, row + rows)
         df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
         df = df.cache()
         df.count()
