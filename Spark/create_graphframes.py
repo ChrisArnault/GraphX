@@ -1,24 +1,84 @@
-import numpy as np
-
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import *
-from pyspark.sql.types import *
-from pyspark.sql import SQLContext
 
 import random
 import time
 import os
-import graphframes
+import sys
+import subprocess
 
-from simple_model_conf import *
+import numpy as np
 
-spark = SparkSession.builder.appName("GraphX").getOrCreate()
-spark.sparkContext.setLogLevel("ERROR")
-spark.sparkContext.setCheckpointDir("/tmp")
+has_spark = os.name != 'nt'
 
-# .set("spark.local.dir", "/tmp/spark-temp");
+if has_spark:
+    from pyspark.sql import SparkSession
+    from pyspark.sql.functions import *
+    from pyspark.sql.types import *
+    from pyspark.sql import SQLContext
 
-sqlContext = SQLContext(spark.sparkContext)
+    import graphframes
+
+if has_spark:
+    spark = SparkSession.builder.appName("GraphX").getOrCreate()
+    spark.sparkContext.setLogLevel("ERROR")
+    spark.sparkContext.setCheckpointDir("/tmp")
+
+    # .set("spark.local.dir", "/tmp/spark-temp");
+
+    sqlContext = SQLContext(spark.sparkContext)
+
+class Conf(object):
+    def __init__(self):
+        self.vertices = 1000
+        self.edges = 1000
+        self.batches_vertices = 1
+        self.batches_edges = 1
+        self.degree_max = 100
+        self.partitions = 1000
+        self.file_format = "parquet"
+        self.graphs_base = "/user/chris.arnault/graphs"
+        self.name = "test"
+        self.graphs = ""
+        self.read_vertices = False
+
+    def set(self):
+        for i, arg in enumerate(sys.argv[1:]):
+            a = arg.split("=")
+            print(i, arg, a)
+            key = a[0]
+            if key == "vertices":
+                self.vertices = int(a[1])
+            elif key == "edges":
+                self.edges = int(a[1])
+            elif key == "batches_vertices":
+                self.batches_vertices = int(a[1])
+            elif key == "batches_edges":
+                self.batches_edges = int(a[1])
+            elif key == "degree_max":
+                self.degree_max = int(a[1])
+            elif key == "batch_size":
+                self.batch_size = int(a[1])
+            elif key == "partitions":
+                self.partitions = int(a[1])
+            elif key == "file_format":
+                self.file_format = a[1]
+            elif key == "name":
+                self.name = a[1]
+            elif key == "read_vertices":
+                self.read_vertices = bool(a[1])
+
+        self.graphs = "{}/{}".format(self.graphs_base, self.name)
+        print("graphs={}".format(self.graphs))
+
+        [print(a, "=", getattr(conf, a)) for a in dir(conf) if a[0] != '_']
+
+        cmd = "hdfs dfs -mkdir {}".format(self.graphs)
+
+        try:
+            result = subprocess.check_output(cmd, shell=True).decode().split("\n")
+            print(result)
+        except:
+            pass
+
 
 class Stepper(object):
     previous_time = None
@@ -69,14 +129,14 @@ def get_file_size(dir, file):
     return 0
 
 
-def edge_it(n, range):
-    for i in range:
-        v = random.randint(0, n)
+def edge_it(vertices, range_edges, degree_max):
+    for i in range_edges:
+        v = random.randint(0, vertices)
         m = random.randint(0, int(degree_max))
         j = 0
         while j < m:
             j += 1
-            w = random.randint(0, n)
+            w = random.randint(0, vertices)
             # print(v, w)
             yield (v, w)
 
@@ -119,6 +179,11 @@ def batch_create(dir, file, build_values, columns, total_rows, batches):
 
     return df
 
+conf = Conf()
+conf.set()
+
+if not has_spark:
+    exit()
 
 x = lambda : np.random.random()
 y = lambda : np.random.random()
@@ -126,8 +191,11 @@ y = lambda : np.random.random()
 vertex_values = lambda start, stop: [(v, x(), y()) for v in range(start, stop)]
 s = Stepper()
 
-# vertices = batch_create(home, "vertices", vertex_values, ["id", "x", "y"], num_vertices, batch_vertices)
-vertices = spark.read.format("parquet").load("{}/{}".format(home, "vertices"))
+if conf.read_vertices:
+    vertices = spark.read.format("parquet").load("{}/{}".format(conf.graphs, "vertices"))
+else:
+    vertices = batch_create(conf.graphs, "vertices", vertex_values, ["id", "x", "y"], conf.vertices, conf.batches_vertices)
+
 s.show_step("creating vertices")
 
 """
@@ -137,8 +205,8 @@ not finished: accumulate vertices and edges by batches
 
 edges = None
 
-edge_values = lambda start, stop : [(v, w) for v, w in edge_it(num_vertices, range(num_edges))]
-edges = batch_create(home, "edges", edge_values, ["src", "dst"], num_edges, batch_edges)
+edge_values = lambda start, stop : [(v, w) for v, w in edge_it(conf.vertices, range(conf.edges), conf.degree_max)]
+edges = batch_create(conf.graphs, "edges", edge_values, ["src", "dst"], conf.edges, conf.batches_edges)
 s.show_step("creating edges")
 
 g = graphframes.GraphFrame(vertices, edges)
