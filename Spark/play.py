@@ -22,7 +22,27 @@ if has_spark:
     spark.sparkContext.setCheckpointDir("/tmp")
     sqlContext = SQLContext(spark.sparkContext)
 
+N = 1000 * 1000
 x = lambda : np.random.random()
 y = lambda : np.random.random()
-vertex_values = lambda : [(v, x(), y()) for v in range(100)]
-df = sqlContext.createDataFrame(vertex_values, ["id", "x", "y"])
+partitions = 100
+g = int(np.sqrt(partitions))
+area = lambda x, y: int(x*g) + g * int(y*g)
+
+
+base_vertex_values = lambda : [(v, x(), y()) for v in range(N)]
+vertex_values = lambda : [(v[0], v[1], v[2], area(v[1], v[2])) for v in base_vertex_values()]
+
+df = sqlContext.createDataFrame(vertex_values(), ["id", "x", "y", "area"])
+n = df.rdd.getNumPartitions()
+print("partitions=", n)
+
+df = df.repartition(partitions, "area")
+n = df.rdd.getNumPartitions()
+print("partitions=", n)
+
+df.show()
+
+spark.sparkContext.stop()
+
+
