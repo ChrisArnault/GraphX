@@ -29,7 +29,6 @@ if has_spark:
 class Conf(object):
     def __init__(self):
         self.vertices = 1000
-        self.edges = 1000
         self.batches_vertices = 1
         self.batches_edges = 1
         self.degree_max = 100
@@ -47,8 +46,6 @@ class Conf(object):
             key = a[0]
             if key == "vertices" or key == "N" or key == "n":
                 self.vertices = int(a[1])
-            elif key == "edges" or key == "E" or key == "e":
-                self.edges = int(a[1])
             elif key == "batches_vertices" or key == "BN" or key == "bn":
                 self.batches_vertices = int(a[1])
             elif key == "batches_edges" or key == "BE" or key == "be":
@@ -65,7 +62,6 @@ class Conf(object):
                 print('''
 > python create_graphfames.py 
   vertices|N = 1000
-  edges|E = 1000
   batches_vertices|BN = 1
   batches_edges|BE = 1
   degree_max|D = 100
@@ -218,21 +214,13 @@ not finished: accumulate vertices and edges by batches
 edges = None
 
 edge_values = lambda start, stop : [(v, w) for v, w in edge_it(conf.vertices, range(start, stop), conf.degree_max)]
-edges = batch_create(conf.graphs, "edges", edge_values, ["src", "dst"], conf.vertices, conf.batches_edges
-
-
-
-
-
-
-
-                     )
+edges = batch_create(conf.graphs, "edges", edge_values, ["src", "dst"], conf.vertices, conf.batches_edges)
 s.show_step("creating edges")
 
 g = graphframes.GraphFrame(vertices, edges)
 s.show_step("Create a GraphFrame")
 
-print("count:", g.vertices.count(), g.edges.count())
+print("count: vertices=", g.vertices.count(), "edges=", g.edges.count())
 s.show_step("count GraphFrame")
 
 g.vertices.show()
