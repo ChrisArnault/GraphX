@@ -2,6 +2,9 @@
 
 """
 Generate points on a sphere
+
+https://en.wikipedia.org/wiki/Kent_distribution
+https://github.com/edfraenkel/kent_distribution
 """
 
 
