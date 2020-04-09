@@ -53,10 +53,7 @@ def edge_it(vertices, range_vertices, degree_max):
         m = random.randint(0, int(degree_max))
         for j in range(m):
             w = random.randint(0, vertices)
-            # print(v, w)
             yield (v, w)
-
-
 
 
 edge_values = lambda : [(i, e[0], e[1]) for i, e in enumerate(edge_it(N, range(0, N), D))]

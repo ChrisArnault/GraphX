@@ -1,21 +1,50 @@
 import numpy as np
-
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import *
-from pyspark.sql.types import *
-from pyspark.sql import SQLContext
-
-import random
 import time
+import os
 
-import graphframes
+has_spark = os.name != 'nt'
 
-from simple_model_conf import *
+if has_spark:
+    from pyspark.sql import SparkSession
+    from pyspark.sql.functions import *
+    from pyspark.sql.types import *
+    from pyspark.sql import SQLContext
 
-spark = SparkSession.builder.appName("GraphX").getOrCreate()
-spark.sparkContext.setLogLevel("ERROR")
-sqlContext = SQLContext(spark.sparkContext)
-spark.sparkContext.setCheckpointDir("/tmp")
+    import graphframes
+
+if has_spark:
+    spark = SparkSession.builder.appName("GraphX").getOrCreate()
+    spark.sparkContext.setLogLevel("ERROR")
+    spark.sparkContext.setCheckpointDir("/tmp")
+
+    sqlContext = SQLContext(spark.sparkContext)
+
+
+class Conf(object):
+    def __init__(self):
+        self.partitions = 300
+        self.graphs_base = "/user/chris.arnault/graphs"
+        self.name = "test"
+        self.graphs = ""
+
+    def set(self):
+        for i, arg in enumerate(sys.argv[1:]):
+            a = arg.split("=")
+            # print(i, arg, a)
+            key = a[0]
+            if key == "partitions" or key == "P" or key == "p":
+                self.partitions = int(a[1])
+            elif key == "name" or key == "F" or key == "f":
+                self.name = a[1]
+            elif key[:2] == "-h" or key[0] == "h":
+                print('''
+> python create_graphfames.py 
+  partitions|P|p = 300
+  name|F|f = "test"
+                ''')
+                exit()
+
+
 
 class Stepper(object):
     previous_time = None
@@ -48,8 +77,13 @@ class Stepper(object):
 
 s = Stepper()
 
-vertices = sqlContext.read.parquet(home + "/vertices")
-edges = sqlContext.read.parquet(home + "/edges")
+conf = Conf()
+conf.set()
+
+file_name = conf.graphs_base + "/" + conf.name
+
+vertices = sqlContext.read.parquet(file_name + "/vertices")
+edges = sqlContext.read.parquet(file_name + "/edges")
 s.show_step("Load the vertices and edges back.")
 
 # Create an identical GraphFrame.
@@ -70,13 +104,4 @@ c = triangles.count()
 triangles.show()
 s.show_step("Get triangle count", c)
 
-
-# Find the youngest user's age in the graph.
-# This queries the vertex DataFrame.
-# g.vertices.groupBy().min("x").show()
-
-# Count the number of "follows" in the graph.
-# This queries the edge DataFrame.
-# numFollows = g.edges.filter("relationship = 'follow'").count()
-
-# print("numFollows=", numFollows)
+spark.sparkContext.stop()

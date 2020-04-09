@@ -21,8 +21,7 @@ if has_spark:
     spark = SparkSession.builder.appName("GraphX").getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
     spark.sparkContext.setCheckpointDir("/tmp")
-
-    # .set("spark.local.dir", "/tmp/spark-temp");
+    spark.conf.set("spark.sql.crossJoin.enabled", True)
 
     sqlContext = SQLContext(spark.sparkContext)
 
@@ -32,12 +31,13 @@ class Conf(object):
         self.batches_vertices = 1
         self.batches_edges = 1
         self.degree_max = 100
-        self.partitions = 1000
+        self.partitions = 300
         self.file_format = "parquet"
         self.graphs_base = "/user/chris.arnault/graphs"
         self.name = "test"
         self.graphs = ""
         self.read_vertices = False
+        self.grid = 10000
 
     def set(self):
         for i, arg in enumerate(sys.argv[1:]):
@@ -58,27 +58,31 @@ class Conf(object):
                 self.name = a[1]
             elif key == "read_vertices" or key == "R" or key == "r":
                 self.read_vertices = True
+            elif key == "grid" or key == "G" or key == "g":
+                self.grid = int(a[1])
             elif key[:2] == "-h" or key[0] == "h":
                 print('''
 > python create_graphfames.py 
-  vertices|N = 1000
-  batches_vertices|BN = 1
-  batches_edges|BE = 1
-  degree_max|D = 100
-  partitions|P = 1000
-  name|F = "test"
-  read_vertices|R = False
+  vertices|N|n = 1000
+  batches_vertices|BN|bn = 1
+  batches_edges|BE|be = 1
+  degree_max|D|d = 100
+  partitions|P|p = 300
+  grid|G|g = 10000
+  name|F|f = "test"
+  read_vertices|R|r = False
                 ''')
                 exit()
 
 
-        self.graphs = "{}/{}_N{}_BN{}_BE{}_D{}".format(self.graphs_base,
-                                                       self.name,
-                                                       self.vertices,
-                                                       self.batches_vertices,
-                                                       self.batches_edges,
-                                                       self.degree_max)
         print("graphs={}".format(self.graphs))
+        self.graphs = "{}/{}_N{}_BN{}_BE{}_D{}_G{}".format(self.graphs_base,
+                                                           self.name,
+                                                           self.vertices,
+                                                           self.batches_vertices,
+                                                           self.batches_edges,
+                                                           self.degree_max,
+                                                           self.grid)
 
         [print(a, "=", getattr(conf, a)) for a in dir(conf) if a[0] != '_']
 
@@ -187,37 +191,129 @@ def batch_create(dir, file, build_values, columns, total_rows, batches):
 
     return df
 
+
+def batch_update(dir, file, df):
+    os.system("hdfs dfs -rm -r -f {}/{}".format(dir, file))
+
+    print("batch_update> ", dir, file)
+    file_name = "{}/{}".format(dir, file)
+
+    df.write.format("parquet").save(file_name)
+
+
+xc = lambda c, g : c % g
+yc = lambda c, g : int(c / g)
+
+def neighbour(g, c1, c2):
+    t1 = c1 == c2
+
+    dx = abs(xc(c1, g) - xc(c2, g))
+    dy = abs(yc(c1, g) - yc(c2, g))
+
+    t2 = (dx == 0) & (dy == 1)
+    t3 = (dx == 0) & (dy == g - 1)
+    t4 = (dx == 1) & (dy == 0)
+    t5 = (dx == g - 1) & (dy == 0)
+
+    t6 = (dx == 1) & (dy == 1)
+    t7 = (dx == 1) & (dy == g - 1)
+    t8 = (dx == g - 1) & (dy == 1)
+    t9 = (dx == g - 1) & (dy == g - 1)
+
+    # print(t1, t2, t3, t4, t5, t6, t7, t8, t9)
+    return t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9
+
+
+
 conf = Conf()
 conf.set()
 
 if not has_spark:
     exit()
 
+"""
+Generic lambda functions
+"""
+
 x = lambda : np.random.random()
 y = lambda : np.random.random()
 
-vertex_values = lambda start, stop: [(v, x(), y()) for v in range(start, stop)]
+g = int(np.sqrt(conf.grid))                     # row or column number of the square grid
+G = g*g                                         # grid size
+cell = lambda x, y: int(x*g) + g * int(y*g)     # cell index
+
+# -------------- Vertices
+
+base_vertex_values = lambda start, stop: [(v, x(), y()) for v in range(start, stop)]
+vertex_values = lambda start, stop: [(v[0], v[1], v[2], cell(v[1], v[2])) for v in base_vertex_values(start, stop)]
+
 s = Stepper()
 
 if conf.read_vertices:
     vertices = spark.read.format("parquet").load("{}/{}".format(conf.graphs, "vertices"))
 else:
-    vertices = batch_create(conf.graphs, "vertices", vertex_values, ["id", "x", "y"], conf.vertices, conf.batches_vertices)
+    vertices = batch_create(dir=conf.graphs,
+                            file="vertices",
+                            build_values=vertex_values,
+                            columns=["id", "x", "y", "cell"],
+                            total_rows=conf.vertices,
+                            batches=conf.batches_vertices)
 
 s.show_step("creating vertices")
 
-"""
-not finished: accumulate vertices and edges by batches
-...
-"""
+original_partitions = vertices.rdd.getNumPartitions()
+print("original partitions # =", original_partitions)
+
+vertices = vertices.repartition(conf.partitions, "cell")
+effective_partitions = vertices.rdd.getNumPartitions()
+print("effective partitions # =", effective_partitions)
+
+# ---------- edges
 
 edges = None
 
-edge_values = lambda start, stop : [(v, w) for v, w in edge_it(conf.vertices, range(start, stop), conf.degree_max)]
-edges = batch_create(conf.graphs, "edges", edge_values, ["src", "dst"], conf.vertices, conf.batches_edges)
+edge_values = lambda start, stop : [(i, e[0], e[1]) for i, e in enumerate(edge_it(conf.vertices,
+                                                                                  range(start, stop),
+                                                                                  conf.degree_max))]
+
+edges = batch_create(dir=conf.graphs,
+                     file="edges",
+                     build_values=edge_values,
+                     columns=["eid", "src", "dst"],
+                     total_rows=conf.vertices,
+                     batches=conf.batches_edges)
+
+edges = edges.repartition(conf.partitions, "eid")
 s.show_step("creating edges")
 
-g = graphframes.GraphFrame(vertices, edges)
+print("count before filter: vertices=", vertices.count(), "edges=", edges.count())
+
+# ---------- filter edges by cell neighbourhood
+
+src = vertices.alias("src")  # "id", "x", "y", "cell"
+filtered_src = src.join(edges, (src.id == edges.src), how="inner") # "id", "x", "y", "cell", "eid", "src", "dst"
+filtered_src.show()
+s.show_step("join src")
+
+dst = vertices.alias("dst")    # "id", "x", "y", "cell"
+
+filtered = dst.join(filtered_src,
+                    (dst.id == filtered_src.dst) & neighbour(g, dst.cell, filtered_src.cell),
+                    how="inner")
+
+# "id", "x", "y", "cell", "eid", "src", "dst", "id", "x", "y", "cell"
+
+s.show_step("join dst")
+
+filtered.show()
+
+edges = filtered.select("eid", "src", "dst")
+
+batch_update(dir=conf.graphs,
+             file="edges",
+             df=edges)
+
+g = graphframes.GraphFrame(vertices, filtered)
 s.show_step("Create a GraphFrame")
 
 print("count: vertices=", g.vertices.count(), "edges=", g.edges.count())
@@ -226,3 +322,4 @@ s.show_step("count GraphFrame")
 g.vertices.show()
 g.edges.show()
 
+spark.sparkContext.stop()
