@@ -40,6 +40,9 @@ class Conf(object):
         self.grid = 10000
 
     def set(self):
+
+        run = True
+
         for i, arg in enumerate(sys.argv[1:]):
             a = arg.split("=")
             # print(i, arg, a)
@@ -60,6 +63,8 @@ class Conf(object):
                 self.read_vertices = True
             elif key == "grid" or key == "G" or key == "g":
                 self.grid = int(a[1])
+            elif key == "Args" or key == "args" or key == "A" or key == "a":
+                run = False
             elif key[:2] == "-h" or key[0] == "h":
                 print('''
 > python create_graphfames.py 
@@ -71,6 +76,7 @@ class Conf(object):
   grid|G|g = 10000
   name|F|f = "test"
   read_vertices|R|r = False
+  Args|args|A|a  print only args (no run)
                 ''')
                 exit()
 
@@ -85,6 +91,9 @@ class Conf(object):
                                                            self.grid)
 
         [print(a, "=", getattr(conf, a)) for a in dir(conf) if a[0] != '_']
+
+        if not run:
+            exit()
 
         cmd = "hdfs dfs -mkdir {}".format(self.graphs)
 
@@ -147,10 +156,13 @@ def get_file_size(dir, file):
 def edge_it(vertices, range_vertices, degree_max):
     for v in range_vertices:
         m = random.randint(0, int(degree_max))
-        for j in range(m):
+        j = 0
+        while j < m:
             w = random.randint(0, vertices)
-            # print(v, w)
-            yield (v, w)
+            if w != v:
+                # print(v, w)
+                yield (v, w)
+                j += 1
 
 
 def batch_create(dir, file, build_values, columns, total_rows, batches):
@@ -193,16 +205,20 @@ def batch_create(dir, file, build_values, columns, total_rows, batches):
 
 
 def batch_update(dir, file, df):
+    print("batch_update> ", dir, file)
+
     os.system("hdfs dfs -rm -r -f {}/{}".format(dir, file))
 
-    print("batch_update> ", dir, file)
     file_name = "{}/{}".format(dir, file)
 
     df.write.format("parquet").save(file_name)
 
 
-xc = lambda c, g : c % g
-yc = lambda c, g : int(c / g)
+def xc(c, g):
+    return c % g
+
+def yc(c, g):
+    return c / g
 
 def neighbour(g, c1, c2):
     t1 = c1 == c2
@@ -223,6 +239,16 @@ def neighbour(g, c1, c2):
     # print(t1, t2, t3, t4, t5, t6, t7, t8, t9)
     return t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9
 
+import signal
+import time
+
+def handler(signum, frame):
+    print("CTL-C received")
+    spark.sparkContext.stop()
+    exit()
+
+
+signal.signal(signal.SIGINT, handler)
 
 
 conf = Conf()
@@ -277,7 +303,7 @@ edge_values = lambda start, stop : [(i, e[0], e[1]) for i, e in enumerate(edge_i
                                                                                   conf.degree_max))]
 
 edges = batch_create(dir=conf.graphs,
-                     file="edges",
+                     file="edges_temp",
                      build_values=edge_values,
                      columns=["eid", "src", "dst"],
                      total_rows=conf.vertices,
@@ -292,28 +318,32 @@ print("count before filter: vertices=", vertices.count(), "edges=", edges.count(
 
 src = vertices.alias("src")  # "id", "x", "y", "cell"
 filtered_src = src.join(edges, (src.id == edges.src), how="inner") # "id", "x", "y", "cell", "eid", "src", "dst"
+
+print("==== filtered_src>")
 filtered_src.show()
 s.show_step("join src")
 
 dst = vertices.alias("dst")    # "id", "x", "y", "cell"
 
 filtered = dst.join(filtered_src,
-                    (dst.id == filtered_src.dst) & neighbour(g, dst.cell, filtered_src.cell),
+                    (dst.id != filtered_src.id) & (dst.id == filtered_src.dst) & neighbour(g, dst.cell, filtered_src.cell),
                     how="inner")
-
-# "id", "x", "y", "cell", "eid", "src", "dst", "id", "x", "y", "cell"
 
 s.show_step("join dst")
 
+print("==== filtered>")
 filtered.show()
 
-edges = filtered.select("eid", "src", "dst")
+filtered_edges = filtered.select("eid", "src", "dst")
+
+print("==== filtered_edges>")
+filtered_edges.show()
 
 batch_update(dir=conf.graphs,
              file="edges",
-             df=edges)
+             df=filtered_edges)
 
-g = graphframes.GraphFrame(vertices, filtered)
+g = graphframes.GraphFrame(vertices, filtered_edges)
 s.show_step("Create a GraphFrame")
 
 print("count: vertices=", g.vertices.count(), "edges=", g.edges.count())
@@ -323,3 +353,5 @@ g.vertices.show()
 g.edges.show()
 
 spark.sparkContext.stop()
+
+
