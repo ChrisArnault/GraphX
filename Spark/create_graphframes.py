@@ -165,7 +165,7 @@ def edge_it(vertices, range_vertices, degree_max):
                 j += 1
 
 
-def batch_create(dir, file, build_values, columns, total_rows, batches):
+def batch_create(conf, dir, file, build_values, columns, total_rows, batches, vertices=None, filter=None):
     os.system("hdfs dfs -rm -r -f {}/{}".format(dir, file))
 
     print("batch_create> ", dir, file, "total_rows=", total_rows, "batches=", batches)
@@ -185,6 +185,10 @@ def batch_create(dir, file, build_values, columns, total_rows, batches):
         df = df.cache()
         df.count()
         s.show_step("building the dataframe")
+
+        if vertices is not None:
+            df = filter(conf, vertices, df)
+            s.show_step("filter the dataframe")
 
         if batch == 0:
             df.write.format("parquet").save(file_name)
@@ -239,6 +243,42 @@ def neighbour(g, c1, c2):
     # print(t1, t2, t3, t4, t5, t6, t7, t8, t9)
     return t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9
 
+
+def filter_edge(conf, vertices, edges):
+    edges = edges.repartition(conf.partitions, "eid")
+    s.show_step("creating edges")
+
+    print("count before filter: vertices=", vertices.count(), "edges=", edges.count())
+
+    # ---------- filter edges by cell neighbourhood
+
+    src = vertices.alias("src")  # "id", "x", "y", "cell"
+    filtered_src = src.join(edges, (src.id == edges.src), how="inner")  # "id", "x", "y", "cell", "eid", "src", "dst"
+
+    print("==== filtered_src>")
+    filtered_src.show()
+    s.show_step("join src")
+
+    dst = vertices.alias("dst")  # "id", "x", "y", "cell"
+
+    filtered = dst.join(filtered_src,
+                        (dst.id != filtered_src.id) & (dst.id == filtered_src.dst) & neighbour(g, dst.cell,
+                                                                                               filtered_src.cell),
+                        how="inner")
+
+    s.show_step("join dst")
+
+    print("==== filtered>")
+    filtered.show()
+
+    filtered_edges = filtered.select("eid", "src", "dst")
+
+    print("==== filtered_edges>")
+    filtered_edges.show()
+
+    return filtered_edges
+
+
 import signal
 import time
 
@@ -278,7 +318,8 @@ s = Stepper()
 if conf.read_vertices:
     vertices = spark.read.format("parquet").load("{}/{}".format(conf.graphs, "vertices"))
 else:
-    vertices = batch_create(dir=conf.graphs,
+    vertices = batch_create(conf=conf,
+                            dir=conf.graphs,
                             file="vertices",
                             build_values=vertex_values,
                             columns=["id", "x", "y", "cell"],
@@ -302,48 +343,23 @@ edge_values = lambda start, stop : [(i, e[0], e[1]) for i, e in enumerate(edge_i
                                                                                   range(start, stop),
                                                                                   conf.degree_max))]
 
-edges = batch_create(dir=conf.graphs,
+edges = batch_create(conf=conf,
+                     dir=conf.graphs,
                      file="edges_temp",
                      build_values=edge_values,
                      columns=["eid", "src", "dst"],
                      total_rows=conf.vertices,
-                     batches=conf.batches_edges)
+                     batches=conf.batches_edges,
+                     vertices=vertices,
+                     filter=filter_edge)
 
-edges = edges.repartition(conf.partitions, "eid")
-s.show_step("creating edges")
-
-print("count before filter: vertices=", vertices.count(), "edges=", edges.count())
-
-# ---------- filter edges by cell neighbourhood
-
-src = vertices.alias("src")  # "id", "x", "y", "cell"
-filtered_src = src.join(edges, (src.id == edges.src), how="inner") # "id", "x", "y", "cell", "eid", "src", "dst"
-
-print("==== filtered_src>")
-filtered_src.show()
-s.show_step("join src")
-
-dst = vertices.alias("dst")    # "id", "x", "y", "cell"
-
-filtered = dst.join(filtered_src,
-                    (dst.id != filtered_src.id) & (dst.id == filtered_src.dst) & neighbour(g, dst.cell, filtered_src.cell),
-                    how="inner")
-
-s.show_step("join dst")
-
-print("==== filtered>")
-filtered.show()
-
-filtered_edges = filtered.select("eid", "src", "dst")
-
-print("==== filtered_edges>")
-filtered_edges.show()
-
+"""
 batch_update(dir=conf.graphs,
              file="edges",
              df=filtered_edges)
+"""
 
-g = graphframes.GraphFrame(vertices, filtered_edges)
+g = graphframes.GraphFrame(vertices, edges)
 s.show_step("Create a GraphFrame")
 
 print("count: vertices=", g.vertices.count(), "edges=", g.edges.count())
