@@ -181,8 +181,8 @@ def batch_create(conf, dir, file, build_values, columns, total_rows, batches, ve
     for batch in range(loops):
         print("batch> ", batch, " range ", row, row + rows)
         df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
-        df = df.cache()
-        df.count()
+        # df = df.cache()
+        # df.count()
         s.show_step("building the dataframe")
 
         if vertices is not None:
@@ -244,10 +244,10 @@ def neighbour(g, c1, c2):
 
 
 def filter_edge(conf, vertices, edges):
-    edges = edges.repartition(conf.partitions, "eid")
-    s.show_step("creating edges")
+    # edges = edges.repartition(conf.partitions, "eid")
+    # s.show_step("creating edges")
 
-    print("count before filter: vertices=", vertices.count(), "edges=", edges.count())
+    # print("count before filter: vertices=", vertices.count(), "edges=", edges.count())
 
     # ---------- filter edges by cell neighbourhood
 
