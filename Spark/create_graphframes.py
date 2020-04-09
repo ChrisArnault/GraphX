@@ -14,7 +14,6 @@ if has_spark:
     from pyspark.sql.functions import *
     from pyspark.sql.types import *
     from pyspark.sql import SQLContext
-
     import graphframes
 
 if has_spark:
