@@ -64,7 +64,7 @@ Results
 <tr>
 <td>10000</td>
 <td>10</td>
-<td></td>
+<td>0h0m48.059s</td>
 <td>1000</td>
 <td>10</td>
 <td>1444</td>

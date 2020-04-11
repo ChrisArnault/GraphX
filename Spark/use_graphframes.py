@@ -28,6 +28,8 @@ class Conf(object):
         self.graphs = ""
 
     def set(self):
+        run = True
+
         for i, arg in enumerate(sys.argv[1:]):
             a = arg.split("=")
             # print(i, arg, a)
@@ -36,6 +38,8 @@ class Conf(object):
                 self.partitions = int(a[1])
             elif key == "name" or key == "F" or key == "f":
                 self.name = a[1]
+            elif key == "Args" or key == "args" or key == "A" or key == "a":
+                run = False
             elif key[:2] == "-h" or key[0] == "h":
                 print('''
 > python create_graphfames.py 
@@ -43,6 +47,11 @@ class Conf(object):
   name|F|f = "test"
                 ''')
                 exit()
+
+        [print(a, "=", getattr(self, a)) for a in dir(self) if a[0] != '_']
+
+        if not run:
+            exit()
 
 
 
@@ -81,6 +90,8 @@ conf = Conf()
 conf.set()
 
 file_name = conf.graphs_base + "/" + conf.name
+
+exit()
 
 vertices = sqlContext.read.parquet(file_name + "/vertices")
 edges = sqlContext.read.parquet(file_name + "/edges")
