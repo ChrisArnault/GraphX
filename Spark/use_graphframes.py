@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import os
+import sys
 
 has_spark = os.name != 'nt'
 
@@ -91,7 +92,7 @@ conf.set()
 
 file_name = conf.graphs_base + "/" + conf.name
 
-exit()
+print("file_name=", file_name)
 
 vertices = sqlContext.read.parquet(file_name + "/vertices")
 edges = sqlContext.read.parquet(file_name + "/edges")
@@ -104,6 +105,8 @@ s.show_step("Create a GraphFrame")
 g.vertices.show(10)
 g.edges.show(10)
 s.show_step("Display the vertex and edge DataFrames")
+
+exit()
 
 vertexDegrees = g.degrees
 vertexDegrees.count()
