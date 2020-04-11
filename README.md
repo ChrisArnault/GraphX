@@ -46,6 +46,7 @@ Results
 <thead>
 <td>vertices</td>
 <td>v_batches</td>
+<td>V time</td>
 <td>max_degree</td>
 <td>e_batches</td>
 <td>edges</td>
@@ -54,6 +55,7 @@ Results
 <tr>
 <td>1000</td>
 <td>1</td>
+<td>0h0m13.305s</td>
 <td>100</td>
 <td>1</td>
 <td>14</td>
@@ -62,14 +64,25 @@ Results
 <tr>
 <td>10000</td>
 <td>10</td>
+<td></td>
 <td>1000</td>
 <td>10</td>
+<td>1444</td>
+<td>0h3m27.544s</td>
+</tr>
+<tr>
+<td>100000</td>
+<td>10</td>
+<td></td>
+<td>1000</td>
+<td>100</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>1000000</td>
 <td>10</td>
+<td>0h1m27.007s</td>
 <td>1000</td>
 <td>100</td>
 <td>147045</td>
