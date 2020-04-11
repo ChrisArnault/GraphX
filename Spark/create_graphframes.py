@@ -25,6 +25,7 @@ if has_spark:
 
     sqlContext = SQLContext(spark.sparkContext)
 
+
 class Conf(object):
     def __init__(self):
         self.vertices = 1000
@@ -90,7 +91,7 @@ class Conf(object):
                                                            self.degree_max,
                                                            self.grid)
 
-        [print(a, "=", getattr(conf, a)) for a in dir(conf) if a[0] != '_']
+        [print(a, "=", getattr(self, a)) for a in dir(self) if a[0] != '_']
 
         if not run:
             exit()
@@ -193,11 +194,11 @@ def neighbour(g, c1, c2):
     return t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9
 
 
-def batch_create(conf, dir, file, build_values, columns, total_rows, batches, vertices=None):
-    os.system("hdfs dfs -rm -r -f {}/{}".format(dir, file))
+def batch_create(directory, file, build_values, columns, total_rows, batches, vertices=None, grid_size=None):
+    os.system("hdfs dfs -rm -r -f {}/{}".format(directory, file))
 
-    print("batch_create> ", dir, file, "total_rows=", total_rows, "batches=", batches)
-    file_name = "{}/{}".format(dir, file)
+    print("batch_create> ", directory, file, "total_rows=", total_rows, "batches=", batches)
+    file_name = "{}/{}".format(directory, file)
 
     previous_size = 0
 
@@ -205,14 +206,14 @@ def batch_create(conf, dir, file, build_values, columns, total_rows, batches, ve
     rows = int(total_rows / loops)
     row = 0
     
-    s = Stepper()
+    local_stepper = Stepper()
 
     for batch in range(loops):
         print("batch> ", batch, " range ", row, row + rows)
 
         if vertices is None:
             df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
-            s.show_step("create dataframe")
+            local_stepper.show_step("create dataframe")
         else:
             src = vertices.alias("src").\
                 withColumnRenamed("id", "src_id").\
@@ -229,39 +230,29 @@ def batch_create(conf, dir, file, build_values, columns, total_rows, batches, ve
             df = df.join(src, (src.src_id == df.src), how="inner"). \
                 join(dst, (dst.dst_id == df.dst) &
                      (dst.dst_id != src.src_id) &
-                     neighbour(conf.g, dst.dst_cell, src.src_cell),
+                     neighbour(grid_size, dst.dst_cell, src.src_cell),
                      how="inner").\
                 select("eid", "src", "dst")
 
-            s.show_step("create dataframe and join")
+            local_stepper.show_step("create dataframe and join")
 
         if batch == 0:
             df.write.format("parquet").save(file_name)
         else:
             df.write.format("parquet").mode("append").save(file_name)
 
-        s.show_step("Write block")
+        local_stepper.show_step("Write block")
 
-        new_size = get_file_size(dir, file)
+        new_size = get_file_size(directory, file)
         increment = new_size - previous_size
         previous_size = new_size
         row += rows
         print("file_size={} increment={}".format(new_size, increment))
 
     df = spark.read.format("parquet").load(file_name)
-    s.show_step("Read full file")
+    local_stepper.show_step("Read full file")
 
     return df
-
-
-def batch_update(dir, file, df):
-    print("batch_update> ", dir, file)
-
-    os.system("hdfs dfs -rm -r -f {}/{}".format(dir, file))
-
-    file_name = "{}/{}".format(dir, file)
-
-    df.write.format("parquet").save(file_name)
 
 
 def handler(signum, frame):
@@ -283,71 +274,60 @@ if not has_spark:
 Generic lambda functions
 """
 
-x = lambda: np.random.random()
-y = lambda: np.random.random()
+randx = lambda: np.random.random()
+randy = lambda: np.random.random()
 
-g = conf.g                                      # row or column number of the square grid
-cell = lambda x, y: int(x*g) + g * int(y*g)     # cell index
+cell = lambda x, y: int(x*conf.g) + conf.g * int(y*conf.g)     # cell index
 
 # -------------- Vertices
 
-base_vertex_values = lambda start, stop: [(v, x(), y()) for v in range(start, stop)]
+base_vertex_values = lambda start, stop: [(v, randx(), randy()) for v in range(start, stop)]
 vertex_values = lambda start, stop: [(v[0], v[1], v[2], cell(v[1], v[2])) for v in base_vertex_values(start, stop)]
 
-s = Stepper()
+stepper = Stepper()
 
 if conf.read_vertices:
-    vertices = spark.read.format("parquet").load("{}/{}".format(conf.graphs, "vertices"))
+    vertices_df = spark.read.format("parquet").load("{}/{}".format(conf.graphs, "vertices"))
 else:
-    vertices = batch_create(conf=conf,
-                            dir=conf.graphs,
-                            file="vertices",
-                            build_values=vertex_values,
-                            columns=["id", "x", "y", "cell"],
-                            total_rows=conf.vertices,
-                            batches=conf.batches_vertices)
+    vertices_df = batch_create(directory=conf.graphs,
+                               file="vertices",
+                               build_values=vertex_values,
+                               columns=["id", "x", "y", "cell"],
+                               total_rows=conf.vertices,
+                               batches=conf.batches_vertices)
 
-s.show_step("creating vertices")
+stepper.show_step("creating vertices")
 
-original_partitions = vertices.rdd.getNumPartitions()
+original_partitions = vertices_df.rdd.getNumPartitions()
 print("original partitions # =", original_partitions)
 
-vertices = vertices.repartition(conf.partitions, "cell")
-effective_partitions = vertices.rdd.getNumPartitions()
+vertices_df = vertices_df.repartition(conf.partitions, "cell")
+effective_partitions = vertices_df.rdd.getNumPartitions()
 print("effective partitions # =", effective_partitions)
 
 # ---------- edges
 
-edges = None
+edge_values = lambda start, stop: [(i, e[0], e[1]) for i, e in enumerate(edge_it(conf.vertices,
+                                                                                 range(start, stop),
+                                                                                 conf.degree_max))]
 
-edge_values = lambda start, stop : [(i, e[0], e[1]) for i, e in enumerate(edge_it(conf.vertices,
-                                                                                  range(start, stop),
-                                                                                  conf.degree_max))]
-
-edges = batch_create(conf=conf,
-                     dir=conf.graphs,
+edges = batch_create(directory=conf.graphs,
                      file="edges_temp",
                      build_values=edge_values,
                      columns=["eid", "src", "dst"],
                      total_rows=conf.vertices,
                      batches=conf.batches_edges,
-                     vertices=vertices)
+                     vertices=vertices_df,
+                     grid_size=conf.g)
 
-"""
-batch_update(dir=conf.graphs,
-             file="edges",
-             df=filtered_edges)
-"""
+graph = graphframes.GraphFrame(vertices_df, edges)
+stepper.show_step("Create a GraphFrame")
 
-g = graphframes.GraphFrame(vertices, edges)
-s.show_step("Create a GraphFrame")
+print("count: vertices=", graph.vertices.count(), "edges=", graph.edges.count())
+stepper.show_step("count GraphFrame")
 
-print("count: vertices=", g.vertices.count(), "edges=", g.edges.count())
-s.show_step("count GraphFrame")
-
-g.vertices.show()
-g.edges.show()
+graph.vertices.show()
+graph.edges.show()
 
 spark.sparkContext.stop()
-
 
