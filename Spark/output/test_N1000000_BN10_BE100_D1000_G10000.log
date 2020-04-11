@@ -1,0 +1,685 @@
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/opt/spark-2.4.3-bin-hadoop2.7/jars/slf4j-log4j12-1.7.16.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/opt/hadoop-2.8.4/share/hadoop/common/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+Ivy Default Cache set to: /home/chris.arnault/.ivy2/cache
+The jars for the packages stored in: /home/chris.arnault/.ivy2/jars
+:: loading settings :: url = jar:file:/opt/spark-2.4.3-bin-hadoop2.7/jars/ivy-2.4.0.jar!/org/apache/ivy/core/settings/ivysettings.xml
+org.influxdb#influxdb-java added as a dependency
+graphframes#graphframes added as a dependency
+:: resolving dependencies :: org.apache.spark#spark-submit-parent-32004efb-0978-482c-9400-f4440f20bc7e;1.0
+	confs: [default]
+	found org.influxdb#influxdb-java;2.14 in central
+	found com.squareup.retrofit2#retrofit;2.4.0 in central
+	found com.squareup.retrofit2#converter-moshi;2.4.0 in central
+	found com.squareup.moshi#moshi;1.5.0 in central
+	found com.squareup.okio#okio;1.13.0 in central
+	found org.msgpack#msgpack-core;0.8.16 in central
+	found com.squareup.okhttp3#okhttp;3.11.0 in central
+	found com.squareup.okio#okio;1.14.0 in central
+	found com.squareup.okhttp3#logging-interceptor;3.11.0 in central
+	found graphframes#graphframes;0.7.0-spark2.4-s_2.11 in spark-packages
+	found org.slf4j#slf4j-api;1.7.16 in central
+:: resolution report :: resolve 433ms :: artifacts dl 7ms
+	:: modules in use:
+	com.squareup.moshi#moshi;1.5.0 from central in [default]
+	com.squareup.okhttp3#logging-interceptor;3.11.0 from central in [default]
+	com.squareup.okhttp3#okhttp;3.11.0 from central in [default]
+	com.squareup.okio#okio;1.14.0 from central in [default]
+	com.squareup.retrofit2#converter-moshi;2.4.0 from central in [default]
+	com.squareup.retrofit2#retrofit;2.4.0 from central in [default]
+	graphframes#graphframes;0.7.0-spark2.4-s_2.11 from spark-packages in [default]
+	org.influxdb#influxdb-java;2.14 from central in [default]
+	org.msgpack#msgpack-core;0.8.16 from central in [default]
+	org.slf4j#slf4j-api;1.7.16 from central in [default]
+	:: evicted modules:
+	com.squareup.okhttp3#okhttp;3.10.0 by [com.squareup.okhttp3#okhttp;3.11.0] in [default]
+	com.squareup.okio#okio;1.13.0 by [com.squareup.okio#okio;1.14.0] in [default]
+	---------------------------------------------------------------------
+	|                  |            modules            ||   artifacts   |
+	|       conf       | number| search|dwnlded|evicted|| number|dwnlded|
+	---------------------------------------------------------------------
+	|      default     |   12  |   0   |   0   |   2   ||   10  |   0   |
+	---------------------------------------------------------------------
+:: retrieving :: org.apache.spark#spark-submit-parent-32004efb-0978-482c-9400-f4440f20bc7e
+	confs: [default]
+	0 artifacts copied, 10 already retrieved (0kB/9ms)
+20/04/11 09:45:33 INFO spark.SparkContext: Running Spark version 2.4.3
+20/04/11 09:45:33 WARN spark.SparkConf: Note that spark.local.dir will be overridden by the value set by the cluster manager (via SPARK_LOCAL_DIRS in mesos/standalone/kubernetes and LOCAL_DIRS in YARN).
+20/04/11 09:45:33 INFO spark.SparkContext: Submitted application: GraphX
+20/04/11 09:45:33 INFO spark.SecurityManager: Changing view acls to: chris.arnault
+20/04/11 09:45:33 INFO spark.SecurityManager: Changing modify acls to: chris.arnault
+20/04/11 09:45:33 INFO spark.SecurityManager: Changing view acls groups to: 
+20/04/11 09:45:33 INFO spark.SecurityManager: Changing modify acls groups to: 
+20/04/11 09:45:33 INFO spark.SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users  with view permissions: Set(chris.arnault); groups with view permissions: Set(); users  with modify permissions: Set(chris.arnault); groups with modify permissions: Set()
+20/04/11 09:45:33 INFO util.Utils: Successfully started service 'sparkDriver' on port 46854.
+20/04/11 09:45:33 INFO spark.SparkEnv: Registering MapOutputTracker
+20/04/11 09:45:33 INFO spark.SparkEnv: Registering BlockManagerMaster
+20/04/11 09:45:33 INFO storage.BlockManagerMasterEndpoint: Using org.apache.spark.storage.DefaultTopologyMapper for getting topology information
+20/04/11 09:45:33 INFO storage.BlockManagerMasterEndpoint: BlockManagerMasterEndpoint up
+20/04/11 09:45:33 INFO storage.DiskBlockManager: Created local directory at /data2/spark_local/blockmgr-c12f1873-cd68-4905-91be-e71ddf4dc09d
+20/04/11 09:45:34 INFO memory.MemoryStore: MemoryStore started with capacity 15.3 GB
+20/04/11 09:45:34 INFO spark.SparkEnv: Registering OutputCommitCoordinator
+20/04/11 09:45:34 INFO util.log: Logging initialized @3486ms
+20/04/11 09:45:34 INFO server.Server: jetty-9.3.z-SNAPSHOT, build timestamp: unknown, git hash: unknown
+20/04/11 09:45:34 INFO server.Server: Started @3569ms
+20/04/11 09:45:34 INFO server.AbstractConnector: Started ServerConnector@46a1743{HTTP/1.1,[http/1.1]}{0.0.0.0:20100}
+20/04/11 09:45:34 INFO util.Utils: Successfully started service 'SparkUI' on port 20100.
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@33e5faaa{/jobs,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@6bdd84e{/jobs/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@6cd1de98{/jobs/job,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@3d721672{/jobs/job/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@55e5c63a{/stages,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@37a2e700{/stages/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@16ebb8e5{/stages/stage,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@60924d62{/stages/stage/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@2b75fd05{/stages/pool,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@2f988c2a{/stages/pool/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@2ef5dde1{/storage,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@5cfe7c00{/storage/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@58672f4f{/storage/rdd,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@33f511b5{/storage/rdd/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@336fc8ff{/environment,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@1c5eacee{/environment/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@7da2e57d{/executors,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@66c13bc5{/executors/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@2ba43fd2{/executors/threadDump,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@4274cf94{/executors/threadDump/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@281743aa{/static,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@44f2a7ab{/,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@404139ca{/api,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@120ac96c{/jobs/job/kill,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@3492eeb2{/stages/stage/kill,null,AVAILABLE,@Spark}
+20/04/11 09:45:34 INFO ui.SparkUI: Bound SparkUI to 0.0.0.0, and started at http://vm-75222.lal.in2p3.fr:20100
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///opt/spark-2/sparkMeasure/target/scala-2.11/spark-measure_2.11-0.16-SNAPSHOT.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/spark-measure_2.11-0.16-SNAPSHOT.jar with timestamp 1586591134288
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/org.influxdb_influxdb-java-2.14.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/org.influxdb_influxdb-java-2.14.jar with timestamp 1586591134289
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar with timestamp 1586591134289
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_retrofit-2.4.0.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/com.squareup.retrofit2_retrofit-2.4.0.jar with timestamp 1586591134290
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_converter-moshi-2.4.0.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/com.squareup.retrofit2_converter-moshi-2.4.0.jar with timestamp 1586591134290
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/org.msgpack_msgpack-core-0.8.16.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/org.msgpack_msgpack-core-0.8.16.jar with timestamp 1586591134290
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_okhttp-3.11.0.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/com.squareup.okhttp3_okhttp-3.11.0.jar with timestamp 1586591134290
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_logging-interceptor-3.11.0.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/com.squareup.okhttp3_logging-interceptor-3.11.0.jar with timestamp 1586591134290
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.moshi_moshi-1.5.0.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/com.squareup.moshi_moshi-1.5.0.jar with timestamp 1586591134291
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.okio_okio-1.14.0.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/com.squareup.okio_okio-1.14.0.jar with timestamp 1586591134291
+20/04/11 09:45:34 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/org.slf4j_slf4j-api-1.7.16.jar at spark://vm-75222.lal.in2p3.fr:46854/jars/org.slf4j_slf4j-api-1.7.16.jar with timestamp 1586591134291
+20/04/11 09:45:34 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/org.influxdb_influxdb-java-2.14.jar at spark://vm-75222.lal.in2p3.fr:46854/files/org.influxdb_influxdb-java-2.14.jar with timestamp 1586591134321
+20/04/11 09:45:34 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/org.influxdb_influxdb-java-2.14.jar to /data2/spark_local/spark-622a7baa-26b8-4053-9785-34bf32671072/userFiles-07a51408-fdfc-459d-ba67-dcb0d1c08836/org.influxdb_influxdb-java-2.14.jar
+20/04/11 09:45:34 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar at spark://vm-75222.lal.in2p3.fr:46854/files/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar with timestamp 1586591134335
+20/04/11 09:45:34 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar to /data2/spark_local/spark-622a7baa-26b8-4053-9785-34bf32671072/userFiles-07a51408-fdfc-459d-ba67-dcb0d1c08836/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar
+20/04/11 09:45:34 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_retrofit-2.4.0.jar at spark://vm-75222.lal.in2p3.fr:46854/files/com.squareup.retrofit2_retrofit-2.4.0.jar with timestamp 1586591134339
+20/04/11 09:45:34 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_retrofit-2.4.0.jar to /data2/spark_local/spark-622a7baa-26b8-4053-9785-34bf32671072/userFiles-07a51408-fdfc-459d-ba67-dcb0d1c08836/com.squareup.retrofit2_retrofit-2.4.0.jar
+20/04/11 09:45:34 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_converter-moshi-2.4.0.jar at spark://vm-75222.lal.in2p3.fr:46854/files/com.squareup.retrofit2_converter-moshi-2.4.0.jar with timestamp 1586591134343
+20/04/11 09:45:34 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_converter-moshi-2.4.0.jar to /data2/spark_local/spark-622a7baa-26b8-4053-9785-34bf32671072/userFiles-07a51408-fdfc-459d-ba67-dcb0d1c08836/com.squareup.retrofit2_converter-moshi-2.4.0.jar
+20/04/11 09:45:34 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/org.msgpack_msgpack-core-0.8.16.jar at spark://vm-75222.lal.in2p3.fr:46854/files/org.msgpack_msgpack-core-0.8.16.jar with timestamp 1586591134347
+20/04/11 09:45:34 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/org.msgpack_msgpack-core-0.8.16.jar to /data2/spark_local/spark-622a7baa-26b8-4053-9785-34bf32671072/userFiles-07a51408-fdfc-459d-ba67-dcb0d1c08836/org.msgpack_msgpack-core-0.8.16.jar
+20/04/11 09:45:34 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_okhttp-3.11.0.jar at spark://vm-75222.lal.in2p3.fr:46854/files/com.squareup.okhttp3_okhttp-3.11.0.jar with timestamp 1586591134350
+20/04/11 09:45:34 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_okhttp-3.11.0.jar to /data2/spark_local/spark-622a7baa-26b8-4053-9785-34bf32671072/userFiles-07a51408-fdfc-459d-ba67-dcb0d1c08836/com.squareup.okhttp3_okhttp-3.11.0.jar
+20/04/11 09:45:34 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_logging-interceptor-3.11.0.jar at spark://vm-75222.lal.in2p3.fr:46854/files/com.squareup.okhttp3_logging-interceptor-3.11.0.jar with timestamp 1586591134354
+20/04/11 09:45:34 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_logging-interceptor-3.11.0.jar to /data2/spark_local/spark-622a7baa-26b8-4053-9785-34bf32671072/userFiles-07a51408-fdfc-459d-ba67-dcb0d1c08836/com.squareup.okhttp3_logging-interceptor-3.11.0.jar
+20/04/11 09:45:34 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.moshi_moshi-1.5.0.jar at spark://vm-75222.lal.in2p3.fr:46854/files/com.squareup.moshi_moshi-1.5.0.jar with timestamp 1586591134358
+20/04/11 09:45:34 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.moshi_moshi-1.5.0.jar to /data2/spark_local/spark-622a7baa-26b8-4053-9785-34bf32671072/userFiles-07a51408-fdfc-459d-ba67-dcb0d1c08836/com.squareup.moshi_moshi-1.5.0.jar
+20/04/11 09:45:34 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.okio_okio-1.14.0.jar at spark://vm-75222.lal.in2p3.fr:46854/files/com.squareup.okio_okio-1.14.0.jar with timestamp 1586591134362
+20/04/11 09:45:34 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.okio_okio-1.14.0.jar to /data2/spark_local/spark-622a7baa-26b8-4053-9785-34bf32671072/userFiles-07a51408-fdfc-459d-ba67-dcb0d1c08836/com.squareup.okio_okio-1.14.0.jar
+20/04/11 09:45:34 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/org.slf4j_slf4j-api-1.7.16.jar at spark://vm-75222.lal.in2p3.fr:46854/files/org.slf4j_slf4j-api-1.7.16.jar with timestamp 1586591134366
+20/04/11 09:45:34 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/org.slf4j_slf4j-api-1.7.16.jar to /data2/spark_local/spark-622a7baa-26b8-4053-9785-34bf32671072/userFiles-07a51408-fdfc-459d-ba67-dcb0d1c08836/org.slf4j_slf4j-api-1.7.16.jar
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Connecting to master spark://134.158.75.222:7077...
+20/04/11 09:45:34 INFO client.TransportClientFactory: Successfully created connection to /134.158.75.222:7077 after 46 ms (0 ms spent in bootstraps)
+20/04/11 09:45:34 INFO cluster.StandaloneSchedulerBackend: Connected to Spark cluster with app ID app-20200411094534-0212
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Executor added: app-20200411094534-0212/0 on worker-20200326093227-134.158.75.172-40854 (134.158.75.172:40854) with 17 core(s)
+20/04/11 09:45:34 INFO cluster.StandaloneSchedulerBackend: Granted executor ID app-20200411094534-0212/0 on hostPort 134.158.75.172:40854 with 17 core(s), 29.0 GB RAM
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Executor added: app-20200411094534-0212/1 on worker-20200326093240-134.158.75.155-46737 (134.158.75.155:46737) with 17 core(s)
+20/04/11 09:45:34 INFO cluster.StandaloneSchedulerBackend: Granted executor ID app-20200411094534-0212/1 on hostPort 134.158.75.155:46737 with 17 core(s), 29.0 GB RAM
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Executor added: app-20200411094534-0212/2 on worker-20200326093229-134.158.75.162-36549 (134.158.75.162:36549) with 17 core(s)
+20/04/11 09:45:34 INFO cluster.StandaloneSchedulerBackend: Granted executor ID app-20200411094534-0212/2 on hostPort 134.158.75.162:36549 with 17 core(s), 29.0 GB RAM
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Executor added: app-20200411094534-0212/3 on worker-20200326093239-134.158.74.177-40183 (134.158.74.177:40183) with 17 core(s)
+20/04/11 09:45:34 INFO cluster.StandaloneSchedulerBackend: Granted executor ID app-20200411094534-0212/3 on hostPort 134.158.74.177:40183 with 17 core(s), 29.0 GB RAM
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Executor added: app-20200411094534-0212/4 on worker-20200326093236-134.158.75.102-45278 (134.158.75.102:45278) with 17 core(s)
+20/04/11 09:45:34 INFO cluster.StandaloneSchedulerBackend: Granted executor ID app-20200411094534-0212/4 on hostPort 134.158.75.102:45278 with 17 core(s), 29.0 GB RAM
+20/04/11 09:45:34 INFO util.Utils: Successfully started service 'org.apache.spark.network.netty.NettyBlockTransferService' on port 39716.
+20/04/11 09:45:34 INFO netty.NettyBlockTransferService: Server created on vm-75222.lal.in2p3.fr:39716
+20/04/11 09:45:34 INFO storage.BlockManager: Using org.apache.spark.storage.RandomBlockReplicationPolicy for block replication policy
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Executor updated: app-20200411094534-0212/0 is now RUNNING
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Executor updated: app-20200411094534-0212/2 is now RUNNING
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Executor updated: app-20200411094534-0212/3 is now RUNNING
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Executor updated: app-20200411094534-0212/4 is now RUNNING
+20/04/11 09:45:34 INFO client.StandaloneAppClient$ClientEndpoint: Executor updated: app-20200411094534-0212/1 is now RUNNING
+20/04/11 09:45:34 INFO storage.BlockManagerMaster: Registering BlockManager BlockManagerId(driver, vm-75222.lal.in2p3.fr, 39716, None)
+20/04/11 09:45:34 INFO storage.BlockManagerMasterEndpoint: Registering block manager vm-75222.lal.in2p3.fr:39716 with 15.3 GB RAM, BlockManagerId(driver, vm-75222.lal.in2p3.fr, 39716, None)
+20/04/11 09:45:34 INFO storage.BlockManagerMaster: Registered BlockManager BlockManagerId(driver, vm-75222.lal.in2p3.fr, 39716, None)
+20/04/11 09:45:34 INFO storage.BlockManager: Initialized BlockManager: BlockManagerId(driver, vm-75222.lal.in2p3.fr, 39716, None)
+20/04/11 09:45:34 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@27cada11{/metrics/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:35 INFO scheduler.EventLoggingListener: Logging events to hdfs://134.158.75.222/spark-history/app-20200411094534-0212
+20/04/11 09:45:35 WARN sparkmeasure.InfluxDBSinkExtended: Custom monitoring listener with InfluxDB sink initializing. Now attempting to connect to InfluxDB
+20/04/11 09:45:35 INFO sparkmeasure.InfluxDBSinkExtended: Found URL for InfluxDB: http://supervision.lal.in2p3.fr:8086
+20/04/11 09:45:35 WARN sparkmeasure.InfluxDBSinkExtended: Credentials for InfluxDB connection not found, using empty username and password, InfluxDB must be running with auth-enabled=false
+20/04/11 09:45:35 INFO sparkmeasure.InfluxDBSinkExtended: InfluxDB name: sparkmeasure
+20/04/11 09:45:35 INFO sparkmeasure.InfluxDBSinkExtended: using InfluxDB database sparkmeasure
+20/04/11 09:45:35 INFO sparkmeasure.InfluxDBSinkExtended: Log also stagemetrics: true
+20/04/11 09:45:35 INFO spark.SparkContext: Registered listener ch.cern.sparkmeasure.InfluxDBSinkExtended
+20/04/11 09:45:35 INFO cluster.StandaloneSchedulerBackend: SchedulerBackend is ready for scheduling beginning after reached minRegisteredResourcesRatio: 0.0
+20/04/11 09:45:36 INFO internal.SharedState: Setting hive.metastore.warehouse.dir ('null') to the value of spark.sql.warehouse.dir ('file:///user/spark/warehouse').
+20/04/11 09:45:36 INFO internal.SharedState: Warehouse path is 'file:///user/spark/warehouse'.
+20/04/11 09:45:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@4c146ab{/SQL,null,AVAILABLE,@Spark}
+20/04/11 09:45:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@6c8ba924{/SQL/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@5a1e16b4{/SQL/execution,null,AVAILABLE,@Spark}
+20/04/11 09:45:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@81d20da{/SQL/execution/json,null,AVAILABLE,@Spark}
+20/04/11 09:45:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@479579b5{/static/sql,null,AVAILABLE,@Spark}
+20/04/11 09:45:36 INFO state.StateStoreCoordinatorRef: Registered StateStoreCoordinator endpoint
+graphs=
+batches_edges = 100
+batches_vertices = 10
+degree_max = 1000
+file_format = parquet
+g = 100
+graphs = /user/chris.arnault/graphs/test_N1000000_BN10_BE100_D1000_G10000
+graphs_base = /user/chris.arnault/graphs
+grid = 10000
+name = test
+partitions = 300
+read_vertices = False
+set = <bound method Conf.set of <__main__.Conf object at 0x7f75b301cba8>>
+vertices = 1000000
+['']
+batch_create>  /user/chris.arnault/graphs/test_N1000000_BN10_BE100_D1000_G10000 vertices total_rows= 1000000 batches= 10
+batch>  0  range  0 100000
+-------------------------------- create dataframe | 0h0m5.368s
+-------------------------------- Write block | 0h0m6.613s
+file_size=2.4 increment=2.4
+batch>  1  range  100000 200000
+-------------------------------- create dataframe | 0h0m5.732s
+-------------------------------- Write block | 0h0m2.438s
+file_size=4.8 increment=2.4
+batch>  2  range  200000 300000
+-------------------------------- create dataframe | 0h0m5.779s
+-------------------------------- Write block | 0h0m2.211s
+file_size=7.1 increment=2.3
+batch>  3  range  300000 400000
+-------------------------------- create dataframe | 0h0m5.741s
+-------------------------------- Write block | 0h0m1.891s
+file_size=9.5 increment=2.4000000000000004
+batch>  4  range  400000 500000
+-------------------------------- create dataframe | 0h0m5.664s
+-------------------------------- Write block | 0h0m1.798s
+file_size=11.9 increment=2.4000000000000004
+batch>  5  range  500000 600000
+-------------------------------- create dataframe | 0h0m5.716s
+-------------------------------- Write block | 0h0m2.194s
+file_size=14.3 increment=2.4000000000000004
+batch>  6  range  600000 700000
+-------------------------------- create dataframe | 0h0m5.792s
+-------------------------------- Write block | 0h0m2.186s
+file_size=16.7 increment=2.3999999999999986
+batch>  7  range  700000 800000
+-------------------------------- create dataframe | 0h0m5.802s
+-------------------------------- Write block | 0h0m1.918s
+file_size=19.0 increment=2.3000000000000007
+batch>  8  range  800000 900000
+-------------------------------- create dataframe | 0h0m5.681s
+-------------------------------- Write block | 0h0m1.624s
+file_size=21.4 increment=2.3999999999999986
+batch>  9  range  900000 1000000
+-------------------------------- create dataframe | 0h0m5.789s
+-------------------------------- Write block | 0h0m2.245s
+file_size=23.8 increment=2.400000000000002
+-------------------------------- Read full file | 0h0m2.850s
+-------------------------------- creating vertices | 0h1m27.007s
+original partitions # = 79
+effective partitions # = 300
+batch_create>  /user/chris.arnault/graphs/test_N1000000_BN10_BE100_D1000_G10000 edges_temp total_rows= 1000000 batches= 100
+batch>  0  range  0 10000
+-------------------------------- create dataframe and join | 0h2m29.779s
+-------------------------------- Write block | 0h0m14.001s
+file_size=0.0203125 increment=0.0203125
+batch>  1  range  10000 20000
+-------------------------------- create dataframe and join | 0h2m33.689s
+-------------------------------- Write block | 0h0m12.397s
+file_size=0.0412109375 increment=0.020898437500000002
+batch>  2  range  20000 30000
+-------------------------------- create dataframe and join | 0h2m33.933s
+-------------------------------- Write block | 0h0m10.834s
+file_size=0.0626953125 increment=0.021484375
+batch>  3  range  30000 40000
+-------------------------------- create dataframe and join | 0h2m33.281s
+-------------------------------- Write block | 0h0m10.354s
+file_size=0.0837890625 increment=0.021093749999999994
+batch>  4  range  40000 50000
+-------------------------------- create dataframe and join | 0h2m35.363s
+-------------------------------- Write block | 0h0m11.220s
+file_size=0.10458984375 increment=0.020800781249999997
+batch>  5  range  50000 60000
+-------------------------------- create dataframe and join | 0h2m33.311s
+-------------------------------- Write block | 0h0m10.622s
+file_size=0.1255859375 increment=0.02099609375
+batch>  6  range  60000 70000
+-------------------------------- create dataframe and join | 0h2m32.064s
+-------------------------------- Write block | 0h0m10.099s
+file_size=0.14716796875 increment=0.021582031249999994
+batch>  7  range  70000 80000
+-------------------------------- create dataframe and join | 0h2m34.332s
+-------------------------------- Write block | 0h0m11.987s
+file_size=0.16962890625 increment=0.0224609375
+batch>  8  range  80000 90000
+-------------------------------- create dataframe and join | 0h2m34.930s
+-------------------------------- Write block | 0h0m10.357s
+file_size=0.190625 increment=0.02099609375
+batch>  9  range  90000 100000
+-------------------------------- create dataframe and join | 0h2m35.021s
+-------------------------------- Write block | 0h0m10.798s
+file_size=0.212109375 increment=0.021484375
+batch>  10  range  100000 110000
+-------------------------------- create dataframe and join | 0h2m32.134s
+-------------------------------- Write block | 0h0m10.717s
+file_size=0.2337890625 increment=0.021679687500000017
+batch>  11  range  110000 120000
+-------------------------------- create dataframe and join | 0h2m33.204s
+-------------------------------- Write block | 0h0m9.535s
+file_size=0.25556640625 increment=0.021777343749999983
+batch>  12  range  120000 130000
+-------------------------------- create dataframe and join | 0h2m32.959s
+-------------------------------- Write block | 0h0m9.690s
+file_size=0.27783203125 increment=0.02226562500000001
+batch>  13  range  130000 140000
+-------------------------------- create dataframe and join | 0h2m32.300s
+-------------------------------- Write block | 0h0m10.601s
+file_size=0.29912109375 increment=0.02128906250000001
+batch>  14  range  140000 150000
+-------------------------------- create dataframe and join | 0h2m34.733s
+-------------------------------- Write block | 0h0m9.857s
+file_size=0.32021484375 increment=0.021093749999999967
+batch>  15  range  150000 160000
+-------------------------------- create dataframe and join | 0h2m34.576s
+-------------------------------- Write block | 0h0m10.189s
+file_size=0.34189453125 increment=0.021679687500000044
+batch>  16  range  160000 170000
+-------------------------------- create dataframe and join | 0h2m34.123s
+-------------------------------- Write block | 0h0m10.307s
+file_size=0.36376953125 increment=0.021874999999999978
+batch>  17  range  170000 180000
+-------------------------------- create dataframe and join | 0h2m31.222s
+-------------------------------- Write block | 0h0m10.162s
+file_size=0.385546875 increment=0.02177734375000001
+batch>  18  range  180000 190000
+-------------------------------- create dataframe and join | 0h2m33.560s
+-------------------------------- Write block | 0h0m10.103s
+file_size=0.40771484375 increment=0.02216796874999999
+batch>  19  range  190000 200000
+-------------------------------- create dataframe and join | 0h2m35.364s
+-------------------------------- Write block | 0h0m10.627s
+file_size=0.42939453125 increment=0.02167968749999999
+batch>  20  range  200000 210000
+-------------------------------- create dataframe and join | 0h2m32.355s
+-------------------------------- Write block | 0h0m10.217s
+file_size=0.45068359375 increment=0.02128906250000001
+batch>  21  range  210000 220000
+-------------------------------- create dataframe and join | 0h2m33.313s
+-------------------------------- Write block | 0h0m10.525s
+file_size=0.47216796875 increment=0.021484375
+batch>  22  range  220000 230000
+-------------------------------- create dataframe and join | 0h2m33.036s
+-------------------------------- Write block | 0h0m10.043s
+file_size=0.49365234375 increment=0.021484375
+batch>  23  range  230000 240000
+-------------------------------- create dataframe and join | 0h2m33.077s
+-------------------------------- Write block | 0h0m10.327s
+file_size=0.51455078125 increment=0.020898437499999978
+batch>  24  range  240000 250000
+-------------------------------- create dataframe and join | 0h2m32.499s
+-------------------------------- Write block | 0h0m9.697s
+file_size=0.53564453125 increment=0.021093750000000022
+batch>  25  range  250000 260000
+-------------------------------- create dataframe and join | 0h2m35.252s
+-------------------------------- Write block | 0h0m10.399s
+file_size=0.55615234375 increment=0.0205078125
+batch>  26  range  260000 270000
+-------------------------------- create dataframe and join | 0h2m32.578s
+-------------------------------- Write block | 0h0m10.403s
+file_size=0.57841796875 increment=0.022265624999999956
+batch>  27  range  270000 280000
+-------------------------------- create dataframe and join | 0h2m35.030s
+-------------------------------- Write block | 0h0m10.288s
+file_size=0.60029296875 increment=0.02187500000000009
+batch>  28  range  280000 290000
+-------------------------------- create dataframe and join | 0h2m32.022s
+-------------------------------- Write block | 0h0m9.872s
+file_size=0.62197265625 increment=0.021679687499999933
+batch>  29  range  290000 300000
+-------------------------------- create dataframe and join | 0h2m33.409s
+-------------------------------- Write block | 0h0m9.696s
+file_size=0.64287109375 increment=0.020898437499999978
+batch>  30  range  300000 310000
+-------------------------------- create dataframe and join | 0h2m33.760s
+-------------------------------- Write block | 0h0m13.022s
+file_size=0.66416015625 increment=0.021289062500000067
+batch>  31  range  310000 320000
+-------------------------------- create dataframe and join | 0h2m33.459s
+-------------------------------- Write block | 0h0m12.102s
+file_size=0.685546875 increment=0.021386718749999978
+batch>  32  range  320000 330000
+-------------------------------- create dataframe and join | 0h2m35.460s
+-------------------------------- Write block | 0h0m10.121s
+file_size=0.70751953125 increment=0.02197265625
+batch>  33  range  330000 340000
+-------------------------------- create dataframe and join | 0h2m35.202s
+-------------------------------- Write block | 0h0m9.995s
+file_size=0.729296875 increment=0.021777343749999956
+batch>  34  range  340000 350000
+-------------------------------- create dataframe and join | 0h2m32.754s
+-------------------------------- Write block | 0h0m10.316s
+file_size=0.74990234375 increment=0.020605468750000022
+batch>  35  range  350000 360000
+-------------------------------- create dataframe and join | 0h2m33.927s
+-------------------------------- Write block | 0h0m9.276s
+file_size=0.77080078125 increment=0.020898437499999978
+batch>  36  range  360000 370000
+-------------------------------- create dataframe and join | 0h2m33.094s
+-------------------------------- Write block | 0h0m10.004s
+file_size=0.79287109375 increment=0.022070312500000022
+batch>  37  range  370000 380000
+-------------------------------- create dataframe and join | 0h2m34.911s
+-------------------------------- Write block | 0h0m9.734s
+file_size=0.81416015625 increment=0.021289062500000067
+batch>  38  range  380000 390000
+-------------------------------- create dataframe and join | 0h2m31.294s
+-------------------------------- Write block | 0h0m10.053s
+file_size=0.83544921875 increment=0.021289062499999956
+batch>  39  range  390000 400000
+-------------------------------- create dataframe and join | 0h2m32.667s
+-------------------------------- Write block | 0h0m9.916s
+file_size=0.85673828125 increment=0.021289062499999956
+batch>  40  range  400000 410000
+-------------------------------- create dataframe and join | 0h2m31.502s
+-------------------------------- Write block | 0h0m9.783s
+file_size=0.8783203125 increment=0.021582031250000022
+batch>  41  range  410000 420000
+-------------------------------- create dataframe and join | 0h2m35.151s
+-------------------------------- Write block | 0h0m9.836s
+file_size=0.8998046875 increment=0.021484375
+batch>  42  range  420000 430000
+-------------------------------- create dataframe and join | 0h2m34.561s
+-------------------------------- Write block | 0h0m9.755s
+file_size=0.9208984375 increment=0.021093750000000022
+batch>  43  range  430000 440000
+-------------------------------- create dataframe and join | 0h2m33.457s
+-------------------------------- Write block | 0h0m10.799s
+file_size=0.94169921875 increment=0.020800781249999956
+batch>  44  range  440000 450000
+-------------------------------- create dataframe and join | 0h2m32.820s
+-------------------------------- Write block | 0h0m9.869s
+file_size=0.96259765625 increment=0.02089843750000009
+batch>  45  range  450000 460000
+-------------------------------- create dataframe and join | 0h2m32.101s
+-------------------------------- Write block | 0h0m10.266s
+file_size=0.98408203125 increment=0.021484375
+batch>  46  range  460000 470000
+-------------------------------- create dataframe and join | 0h2m32.220s
+-------------------------------- Write block | 0h0m10.071s
+file_size=1.0 increment=0.015917968749999956
+batch>  47  range  470000 480000
+-------------------------------- create dataframe and join | 0h2m32.601s
+-------------------------------- Write block | 0h0m10.154s
+file_size=1.0 increment=0.0
+batch>  48  range  480000 490000
+-------------------------------- create dataframe and join | 0h2m35.088s
+-------------------------------- Write block | 0h0m10.125s
+file_size=1.0 increment=0.0
+batch>  49  range  490000 500000
+-------------------------------- create dataframe and join | 0h2m30.623s
+-------------------------------- Write block | 0h0m10.427s
+file_size=1.1 increment=0.10000000000000009
+batch>  50  range  500000 510000
+-------------------------------- create dataframe and join | 0h2m31.734s
+-------------------------------- Write block | 0h0m9.811s
+file_size=1.1 increment=0.0
+batch>  51  range  510000 520000
+-------------------------------- create dataframe and join | 0h2m34.617s
+-------------------------------- Write block | 0h0m10.278s
+file_size=1.1 increment=0.0
+batch>  52  range  520000 530000
+-------------------------------- create dataframe and join | 0h2m36.372s
+-------------------------------- Write block | 0h0m10.488s
+file_size=1.1 increment=0.0
+batch>  53  range  530000 540000
+-------------------------------- create dataframe and join | 0h2m31.514s
+-------------------------------- Write block | 0h0m9.827s
+file_size=1.2 increment=0.09999999999999987
+batch>  54  range  540000 550000
+-------------------------------- create dataframe and join | 0h2m34.974s
+-------------------------------- Write block | 0h0m10.186s
+file_size=1.2 increment=0.0
+batch>  55  range  550000 560000
+-------------------------------- create dataframe and join | 0h2m33.593s
+-------------------------------- Write block | 0h0m10.514s
+file_size=1.2 increment=0.0
+batch>  56  range  560000 570000
+-------------------------------- create dataframe and join | 0h2m32.087s
+-------------------------------- Write block | 0h0m9.685s
+file_size=1.2 increment=0.0
+batch>  57  range  570000 580000
+-------------------------------- create dataframe and join | 0h2m32.700s
+-------------------------------- Write block | 0h0m10.364s
+file_size=1.2 increment=0.0
+batch>  58  range  580000 590000
+-------------------------------- create dataframe and join | 0h2m33.343s
+-------------------------------- Write block | 0h0m10.022s
+file_size=1.3 increment=0.10000000000000009
+batch>  59  range  590000 600000
+-------------------------------- create dataframe and join | 0h2m33.563s
+-------------------------------- Write block | 0h0m10.625s
+file_size=1.3 increment=0.0
+batch>  60  range  600000 610000
+-------------------------------- create dataframe and join | 0h2m32.934s
+-------------------------------- Write block | 0h0m9.796s
+file_size=1.3 increment=0.0
+batch>  61  range  610000 620000
+-------------------------------- create dataframe and join | 0h2m34.782s
+-------------------------------- Write block | 0h0m9.719s
+file_size=1.3 increment=0.0
+batch>  62  range  620000 630000
+-------------------------------- create dataframe and join | 0h2m33.733s
+-------------------------------- Write block | 0h0m10.260s
+file_size=1.3 increment=0.0
+batch>  63  range  630000 640000
+-------------------------------- create dataframe and join | 0h2m33.189s
+-------------------------------- Write block | 0h0m10.469s
+file_size=1.4 increment=0.09999999999999987
+batch>  64  range  640000 650000
+-------------------------------- create dataframe and join | 0h2m33.839s
+-------------------------------- Write block | 0h0m10.589s
+file_size=1.4 increment=0.0
+batch>  65  range  650000 660000
+-------------------------------- create dataframe and join | 0h2m35.464s
+-------------------------------- Write block | 0h0m11.403s
+file_size=1.4 increment=0.0
+batch>  66  range  660000 670000
+-------------------------------- create dataframe and join | 0h2m33.615s
+-------------------------------- Write block | 0h0m11.356s
+file_size=1.4 increment=0.0
+batch>  67  range  670000 680000
+-------------------------------- create dataframe and join | 0h2m34.943s
+-------------------------------- Write block | 0h0m10.077s
+file_size=1.5 increment=0.10000000000000009
+batch>  68  range  680000 690000
+-------------------------------- create dataframe and join | 0h2m35.713s
+-------------------------------- Write block | 0h0m9.212s
+file_size=1.5 increment=0.0
+batch>  69  range  690000 700000
+-------------------------------- create dataframe and join | 0h2m31.226s
+-------------------------------- Write block | 0h0m10.284s
+file_size=1.5 increment=0.0
+batch>  70  range  700000 710000
+-------------------------------- create dataframe and join | 0h2m30.781s
+-------------------------------- Write block | 0h0m9.679s
+file_size=1.5 increment=0.0
+batch>  71  range  710000 720000
+-------------------------------- create dataframe and join | 0h2m37.516s
+-------------------------------- Write block | 0h0m10.341s
+file_size=1.5 increment=0.0
+batch>  72  range  720000 730000
+-------------------------------- create dataframe and join | 0h2m32.969s
+-------------------------------- Write block | 0h0m9.010s
+file_size=1.6 increment=0.10000000000000009
+batch>  73  range  730000 740000
+-------------------------------- create dataframe and join | 0h2m31.556s
+-------------------------------- Write block | 0h0m10.171s
+file_size=1.6 increment=0.0
+batch>  74  range  740000 750000
+-------------------------------- create dataframe and join | 0h2m33.600s
+-------------------------------- Write block | 0h0m10.702s
+file_size=1.6 increment=0.0
+batch>  75  range  750000 760000
+-------------------------------- create dataframe and join | 0h2m33.932s
+-------------------------------- Write block | 0h0m10.394s
+file_size=1.6 increment=0.0
+batch>  76  range  760000 770000
+-------------------------------- create dataframe and join | 0h2m31.813s
+-------------------------------- Write block | 0h0m9.725s
+file_size=1.7 increment=0.09999999999999987
+batch>  77  range  770000 780000
+-------------------------------- create dataframe and join | 0h2m36.468s
+-------------------------------- Write block | 0h0m10.407s
+file_size=1.7 increment=0.0
+batch>  78  range  780000 790000
+-------------------------------- create dataframe and join | 0h2m33.059s
+-------------------------------- Write block | 0h0m9.319s
+file_size=1.7 increment=0.0
+batch>  79  range  790000 800000
+-------------------------------- create dataframe and join | 0h2m32.337s
+-------------------------------- Write block | 0h0m10.039s
+file_size=1.7 increment=0.0
+batch>  80  range  800000 810000
+-------------------------------- create dataframe and join | 0h2m34.516s
+-------------------------------- Write block | 0h0m10.363s
+file_size=1.7 increment=0.0
+batch>  81  range  810000 820000
+-------------------------------- create dataframe and join | 0h2m33.800s
+-------------------------------- Write block | 0h0m9.421s
+file_size=1.8 increment=0.10000000000000009
+batch>  82  range  820000 830000
+-------------------------------- create dataframe and join | 0h2m33.630s
+-------------------------------- Write block | 0h0m9.180s
+file_size=1.8 increment=0.0
+batch>  83  range  830000 840000
+-------------------------------- create dataframe and join | 0h2m33.996s
+-------------------------------- Write block | 0h0m10.052s
+file_size=1.8 increment=0.0
+batch>  84  range  840000 850000
+-------------------------------- create dataframe and join | 0h2m33.814s
+-------------------------------- Write block | 0h0m10.146s
+file_size=1.8 increment=0.0
+batch>  85  range  850000 860000
+-------------------------------- create dataframe and join | 0h2m34.533s
+-------------------------------- Write block | 0h0m9.861s
+file_size=1.8 increment=0.0
+batch>  86  range  860000 870000
+-------------------------------- create dataframe and join | 0h2m32.065s
+-------------------------------- Write block | 0h0m10.028s
+file_size=1.9 increment=0.09999999999999987
+batch>  87  range  870000 880000
+-------------------------------- create dataframe and join | 0h2m35.606s
+-------------------------------- Write block | 0h0m16.019s
+file_size=1.9 increment=0.0
+batch>  88  range  880000 890000
+-------------------------------- create dataframe and join | 0h2m34.641s
+-------------------------------- Write block | 0h0m14.994s
+file_size=1.9 increment=0.0
+batch>  89  range  890000 900000
+-------------------------------- create dataframe and join | 0h2m33.584s
+-------------------------------- Write block | 0h0m10.477s
+file_size=1.9 increment=0.0
+batch>  90  range  900000 910000
+-------------------------------- create dataframe and join | 0h2m33.701s
+-------------------------------- Write block | 0h0m10.356s
+file_size=2.0 increment=0.10000000000000009
+batch>  91  range  910000 920000
+-------------------------------- create dataframe and join | 0h2m35.541s
+-------------------------------- Write block | 0h0m10.202s
+file_size=2.0 increment=0.0
+batch>  92  range  920000 930000
+-------------------------------- create dataframe and join | 0h2m33.813s
+-------------------------------- Write block | 0h0m9.907s
+file_size=2.0 increment=0.0
+batch>  93  range  930000 940000
+-------------------------------- create dataframe and join | 0h2m34.893s
+-------------------------------- Write block | 0h0m10.189s
+file_size=2.0 increment=0.0
+batch>  94  range  940000 950000
+-------------------------------- create dataframe and join | 0h2m32.271s
+-------------------------------- Write block | 0h0m10.308s
+file_size=2.0 increment=0.0
+batch>  95  range  950000 960000
+-------------------------------- create dataframe and join | 0h2m34.115s
+-------------------------------- Write block | 0h0m10.069s
+file_size=2.1 increment=0.10000000000000009
+batch>  96  range  960000 970000
+-------------------------------- create dataframe and join | 0h2m35.680s
+-------------------------------- Write block | 0h0m9.892s
+file_size=2.1 increment=0.0
+batch>  97  range  970000 980000
+-------------------------------- create dataframe and join | 0h2m36.304s
+-------------------------------- Write block | 0h0m10.466s
+file_size=2.1 increment=0.0
+batch>  98  range  980000 990000
+-------------------------------- create dataframe and join | 0h2m32.829s
+-------------------------------- Write block | 0h0m10.559s
+file_size=2.1 increment=0.0
+batch>  99  range  990000 1000000
+-------------------------------- create dataframe and join | 0h2m33.273s
+-------------------------------- Write block | 0h0m10.177s
+file_size=2.1 increment=0.0
+-------------------------------- Read full file | 0h0m3.704s
+-------------------------------- Create a GraphFrame | 4h33h24.873s
+count: vertices= 1000000 edges= 147045
+-------------------------------- count GraphFrame | 0h0m2.000s
++------+--------------------+-------------------+----+
+|    id|                   x|                  y|cell|
++------+--------------------+-------------------+----+
+|721881| 0.09119545636128867| 0.5494510615156828|5409|
+|722166| 0.06206723604377595| 0.1805252388009937|1806|
+|722506|  0.8061193434414989| 0.2917752050727136|2980|
+|722896|  0.7865472122474141| 0.9904792794580661|9978|
+|723142|  0.9494338948278988|0.48946302027859756|4894|
+|723372|  0.8467413574220889| 0.8488041261901199|8484|
+|723398|   0.686388828573704| 0.9993376892552825|9968|
+|615087|  0.7498770545577149| 0.9968604131038815|9974|
+|615432|     0.1117907664119| 0.3986222815091992|3911|
+|615695| 0.12238753042134742|0.23734456955826533|2312|
+|615748|  0.5090059433891855|0.19018612216273922|1950|
+|616135|  0.4727807299293427| 0.7798699044891665|7747|
+|345344|  0.9700163260353828|0.16594626617811736|1697|
+|346094|  0.6430827240602992| 0.3783250506286595|3764|
+|346209|  0.2964439305165435|0.25371515659293553|2529|
+|346401|  0.4758247734194023| 0.7727696638022253|7747|
+|346721|  0.6882928974039539| 0.9915377716555899|9968|
+|346844| 0.47488831849977176| 0.7705676531649087|7747|
+|346930|  0.5066274560626275|0.19046776038182045|1950|
+|715286|0.031551678942946415|0.03865032621848319| 303|
++------+--------------------+-------------------+----+
+only showing top 20 rows
+
++-------+------+-----+
+|    eid|   src|  dst|
++-------+------+-----+
+|4560303|179176|  995|
+|1278556|172590| 1110|
+|1798891|173615| 2030|
+|2271038|174597| 3988|
+|4501924|179065| 4828|
+|2913089|175886| 5499|
+|1892664|173814| 5962|
+|1126675|172293| 7375|
+|4539685|179140| 7912|
+|4479012|179020| 9259|
+|  44861|170075| 9464|
+|4198499|178454|10695|
+| 423238|170853|10811|
+|4088363|178237|11569|
+| 505136|171018|14300|
+|2981737|176017|15188|
+| 582589|171175|15708|
+|1617391|173264|18237|
+|3241100|176533|18336|
+|2007463|174046|21086|
++-------+------+-----+
+only showing top 20 rows
+

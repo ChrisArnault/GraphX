@@ -30,6 +30,4 @@ venv*
 
 .sonar/
 
-# oval
-*.out
 
