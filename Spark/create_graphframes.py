@@ -4,7 +4,8 @@ import time
 import os
 import sys
 import subprocess
-
+import signal
+import time
 import numpy as np
 
 has_spark = os.name != 'nt'
@@ -37,6 +38,7 @@ class Conf(object):
         self.graphs = ""
         self.read_vertices = False
         self.grid = 10000
+        self.g = int(np.sqrt(conf.grid))  # row or column number of the square grid
 
     def set(self):
 
@@ -78,7 +80,6 @@ class Conf(object):
   Args|args|A|a  print only args (no run)
                 ''')
                 exit()
-
 
         print("graphs={}".format(self.graphs))
         self.graphs = "{}/{}_N{}_BN{}_BE{}_D{}_G{}".format(self.graphs_base,
@@ -133,9 +134,9 @@ class Stepper(object):
         return delta
 
 
-def get_file_size(dir, file):
+def get_file_size(directory, file):
     import subprocess
-    cmd = "hdfs dfs -du -h {} | egrep {}".format(dir, file)
+    cmd = "hdfs dfs -du -h {} | egrep {}".format(directory, file)
     result = subprocess.check_output(cmd, shell=True).decode().split("\n")
     for line in result:
         if file in line:
@@ -152,19 +153,47 @@ def get_file_size(dir, file):
     return 0
 
 
-def edge_it(vertices, range_vertices, degree_max):
+def edge_it(vertex_number, range_vertices, degree_max):
     for v in range_vertices:
         m = random.randint(0, int(degree_max))
         j = 0
         while j < m:
-            w = random.randint(0, vertices)
+            w = random.randint(0, vertex_number)
             if w != v:
                 # print(v, w)
                 yield (v, w)
                 j += 1
 
 
-def batch_create(conf, dir, file, build_values, columns, total_rows, batches, vertices=None, filter=None):
+def xc(c, g):
+    return c % g
+
+
+def yc(c, g):
+    return c / g
+
+
+def neighbour(g, c1, c2):
+    t1 = c1 == c2
+
+    dx = abs(xc(c1, g) - xc(c2, g))
+    dy = abs(yc(c1, g) - yc(c2, g))
+
+    t2 = (dx == 0) & (dy == 1)
+    t3 = (dx == 0) & (dy == g - 1)
+    t4 = (dx == 1) & (dy == 0)
+    t5 = (dx == g - 1) & (dy == 0)
+
+    t6 = (dx == 1) & (dy == 1)
+    t7 = (dx == 1) & (dy == g - 1)
+    t8 = (dx == g - 1) & (dy == 1)
+    t9 = (dx == g - 1) & (dy == g - 1)
+
+    # print(t1, t2, t3, t4, t5, t6, t7, t8, t9)
+    return t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9
+
+
+def batch_create(conf, dir, file, build_values, columns, total_rows, batches, vertices=None):
     os.system("hdfs dfs -rm -r -f {}/{}".format(dir, file))
 
     print("batch_create> ", dir, file, "total_rows=", total_rows, "batches=", batches)
@@ -180,19 +209,37 @@ def batch_create(conf, dir, file, build_values, columns, total_rows, batches, ve
 
     for batch in range(loops):
         print("batch> ", batch, " range ", row, row + rows)
-        df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
-        # df = df.cache()
-        # df.count()
-        s.show_step("building the dataframe")
 
-        if vertices is not None:
-            df = filter(conf, vertices, df)
-            s.show_step("filter the dataframe")
+        if vertices is None:
+            df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
+            s.show_step("create dataframe")
+        else:
+            src = vertices.alias("src").\
+                withColumnRenamed("id", "src_id").\
+                withColumnRenamed("cell", "src_cell")
+            dst = vertices.alias("dst").\
+                withColumnRenamed("id", "dst_id").\
+                withColumnRenamed("cell", "dst_cell")
+
+            # "src_id", "x", "y", "src_cell"
+            # "dst_id", "x", "y", "dst_cell"
+            # "eid", "src", "dst"
+
+            df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
+            df = df.join(src, (src.src_id == df.src), how="inner"). \
+                join(dst, (dst.dst_id == df.dst) &
+                     (dst.dst_id != src.src_id) &
+                     neighbour(conf.g, dst.dst_cell, src.src_cell),
+                     how="inner").\
+                select("eid", "src", "dst")
+
+            s.show_step("create dataframe and join")
 
         if batch == 0:
             df.write.format("parquet").save(file_name)
         else:
             df.write.format("parquet").mode("append").save(file_name)
+
         s.show_step("Write block")
 
         new_size = get_file_size(dir, file)
@@ -217,70 +264,6 @@ def batch_update(dir, file, df):
     df.write.format("parquet").save(file_name)
 
 
-def xc(c, g):
-    return c % g
-
-def yc(c, g):
-    return c / g
-
-def neighbour(g, c1, c2):
-    t1 = c1 == c2
-
-    dx = abs(xc(c1, g) - xc(c2, g))
-    dy = abs(yc(c1, g) - yc(c2, g))
-
-    t2 = (dx == 0) & (dy == 1)
-    t3 = (dx == 0) & (dy == g - 1)
-    t4 = (dx == 1) & (dy == 0)
-    t5 = (dx == g - 1) & (dy == 0)
-
-    t6 = (dx == 1) & (dy == 1)
-    t7 = (dx == 1) & (dy == g - 1)
-    t8 = (dx == g - 1) & (dy == 1)
-    t9 = (dx == g - 1) & (dy == g - 1)
-
-    # print(t1, t2, t3, t4, t5, t6, t7, t8, t9)
-    return t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9
-
-
-def filter_edge(conf, vertices, edges):
-    # edges = edges.repartition(conf.partitions, "eid")
-    # s.show_step("creating edges")
-
-    # print("count before filter: vertices=", vertices.count(), "edges=", edges.count())
-
-    # ---------- filter edges by cell neighbourhood
-
-    src = vertices.alias("src")  # "id", "x", "y", "cell"
-    filtered_src = src.join(edges, (src.id == edges.src), how="inner")  # "id", "x", "y", "cell", "eid", "src", "dst"
-
-    print("==== filtered_src>")
-    filtered_src.show()
-    s.show_step("join src")
-
-    dst = vertices.alias("dst")  # "id", "x", "y", "cell"
-
-    filtered = dst.join(filtered_src,
-                        (dst.id != filtered_src.id) & (dst.id == filtered_src.dst) & neighbour(g, dst.cell,
-                                                                                               filtered_src.cell),
-                        how="inner")
-
-    s.show_step("join dst")
-
-    print("==== filtered>")
-    filtered.show()
-
-    filtered_edges = filtered.select("eid", "src", "dst")
-
-    print("==== filtered_edges>")
-    filtered_edges.show()
-
-    return filtered_edges
-
-
-import signal
-import time
-
 def handler(signum, frame):
     print("CTL-C received")
     spark.sparkContext.stop()
@@ -300,11 +283,10 @@ if not has_spark:
 Generic lambda functions
 """
 
-x = lambda : np.random.random()
-y = lambda : np.random.random()
+x = lambda: np.random.random()
+y = lambda: np.random.random()
 
-g = int(np.sqrt(conf.grid))                     # row or column number of the square grid
-G = g*g                                         # grid size
+g = conf.g                                      # row or column number of the square grid
 cell = lambda x, y: int(x*g) + g * int(y*g)     # cell index
 
 # -------------- Vertices
@@ -349,8 +331,7 @@ edges = batch_create(conf=conf,
                      columns=["eid", "src", "dst"],
                      total_rows=conf.vertices,
                      batches=conf.batches_edges,
-                     vertices=vertices,
-                     filter=filter_edge)
+                     vertices=vertices)
 
 """
 batch_update(dir=conf.graphs,
