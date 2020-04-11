@@ -38,7 +38,7 @@ class Conf(object):
         self.graphs = ""
         self.read_vertices = False
         self.grid = 10000
-        self.g = int(np.sqrt(conf.grid))  # row or column number of the square grid
+        self.g = int(np.sqrt(self.grid))  # row or column number of the square grid
 
     def set(self):
 
