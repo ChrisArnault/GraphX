@@ -1,0 +1,380 @@
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/opt/spark-2.4.3-bin-hadoop2.7/jars/slf4j-log4j12-1.7.16.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/opt/hadoop-2.8.4/share/hadoop/common/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+Ivy Default Cache set to: /home/chris.arnault/.ivy2/cache
+The jars for the packages stored in: /home/chris.arnault/.ivy2/jars
+:: loading settings :: url = jar:file:/opt/spark-2.4.3-bin-hadoop2.7/jars/ivy-2.4.0.jar!/org/apache/ivy/core/settings/ivysettings.xml
+org.influxdb#influxdb-java added as a dependency
+graphframes#graphframes added as a dependency
+:: resolving dependencies :: org.apache.spark#spark-submit-parent-a179befa-9baf-4aba-b613-c23974743b8a;1.0
+	confs: [default]
+	found org.influxdb#influxdb-java;2.14 in central
+	found com.squareup.retrofit2#retrofit;2.4.0 in central
+	found com.squareup.retrofit2#converter-moshi;2.4.0 in central
+	found com.squareup.moshi#moshi;1.5.0 in central
+	found com.squareup.okio#okio;1.13.0 in central
+	found org.msgpack#msgpack-core;0.8.16 in central
+	found com.squareup.okhttp3#okhttp;3.11.0 in central
+	found com.squareup.okio#okio;1.14.0 in central
+	found com.squareup.okhttp3#logging-interceptor;3.11.0 in central
+	found graphframes#graphframes;0.7.0-spark2.4-s_2.11 in spark-packages
+	found org.slf4j#slf4j-api;1.7.16 in central
+:: resolution report :: resolve 471ms :: artifacts dl 12ms
+	:: modules in use:
+	com.squareup.moshi#moshi;1.5.0 from central in [default]
+	com.squareup.okhttp3#logging-interceptor;3.11.0 from central in [default]
+	com.squareup.okhttp3#okhttp;3.11.0 from central in [default]
+	com.squareup.okio#okio;1.14.0 from central in [default]
+	com.squareup.retrofit2#converter-moshi;2.4.0 from central in [default]
+	com.squareup.retrofit2#retrofit;2.4.0 from central in [default]
+	graphframes#graphframes;0.7.0-spark2.4-s_2.11 from spark-packages in [default]
+	org.influxdb#influxdb-java;2.14 from central in [default]
+	org.msgpack#msgpack-core;0.8.16 from central in [default]
+	org.slf4j#slf4j-api;1.7.16 from central in [default]
+	:: evicted modules:
+	com.squareup.okhttp3#okhttp;3.10.0 by [com.squareup.okhttp3#okhttp;3.11.0] in [default]
+	com.squareup.okio#okio;1.13.0 by [com.squareup.okio#okio;1.14.0] in [default]
+	---------------------------------------------------------------------
+	|                  |            modules            ||   artifacts   |
+	|       conf       | number| search|dwnlded|evicted|| number|dwnlded|
+	---------------------------------------------------------------------
+	|      default     |   12  |   0   |   0   |   2   ||   10  |   0   |
+	---------------------------------------------------------------------
+:: retrieving :: org.apache.spark#spark-submit-parent-a179befa-9baf-4aba-b613-c23974743b8a
+	confs: [default]
+	0 artifacts copied, 10 already retrieved (0kB/13ms)
+20/04/11 16:18:36 INFO spark.SparkContext: Running Spark version 2.4.3
+20/04/11 16:18:36 WARN spark.SparkConf: Note that spark.local.dir will be overridden by the value set by the cluster manager (via SPARK_LOCAL_DIRS in mesos/standalone/kubernetes and LOCAL_DIRS in YARN).
+20/04/11 16:18:36 INFO spark.SparkContext: Submitted application: GraphX
+20/04/11 16:18:36 INFO spark.SecurityManager: Changing view acls to: chris.arnault
+20/04/11 16:18:36 INFO spark.SecurityManager: Changing modify acls to: chris.arnault
+20/04/11 16:18:36 INFO spark.SecurityManager: Changing view acls groups to: 
+20/04/11 16:18:36 INFO spark.SecurityManager: Changing modify acls groups to: 
+20/04/11 16:18:36 INFO spark.SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users  with view permissions: Set(chris.arnault); groups with view permissions: Set(); users  with modify permissions: Set(chris.arnault); groups with modify permissions: Set()
+20/04/11 16:18:36 INFO util.Utils: Successfully started service 'sparkDriver' on port 42665.
+20/04/11 16:18:36 INFO spark.SparkEnv: Registering MapOutputTracker
+20/04/11 16:18:36 INFO spark.SparkEnv: Registering BlockManagerMaster
+20/04/11 16:18:36 INFO storage.BlockManagerMasterEndpoint: Using org.apache.spark.storage.DefaultTopologyMapper for getting topology information
+20/04/11 16:18:36 INFO storage.BlockManagerMasterEndpoint: BlockManagerMasterEndpoint up
+20/04/11 16:18:36 INFO storage.DiskBlockManager: Created local directory at /data2/spark_local/blockmgr-4026eba5-53c8-449d-89f3-fcfd392faae8
+20/04/11 16:18:36 INFO memory.MemoryStore: MemoryStore started with capacity 15.3 GB
+20/04/11 16:18:36 INFO spark.SparkEnv: Registering OutputCommitCoordinator
+20/04/11 16:18:36 INFO util.log: Logging initialized @3599ms
+20/04/11 16:18:36 INFO server.Server: jetty-9.3.z-SNAPSHOT, build timestamp: unknown, git hash: unknown
+20/04/11 16:18:36 INFO server.Server: Started @3675ms
+20/04/11 16:18:36 INFO server.AbstractConnector: Started ServerConnector@6c7d7189{HTTP/1.1,[http/1.1]}{0.0.0.0:20100}
+20/04/11 16:18:36 INFO util.Utils: Successfully started service 'SparkUI' on port 20100.
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@645d81e{/jobs,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@255d60fa{/jobs/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@48c7841b{/jobs/job,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@8530084{/jobs/job/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@46c7ebc4{/stages,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@3254485b{/stages/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@5caace0a{/stages/stage,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@250b69d3{/stages/stage/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@2f5b39e6{/stages/pool,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@e063a4c{/stages/pool/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@541cca04{/storage,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@2aa764a5{/storage/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@5cc5fc1e{/storage/rdd,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@632e6990{/storage/rdd/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@5150d31b{/environment,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@40c307d8{/environment/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@331536d2{/executors,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@23e7bbc9{/executors/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@74786ca5{/executors/threadDump,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@2c5d4835{/executors/threadDump/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@366448ca{/static,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@6980e884{/,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@2b6d09cc{/api,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@6312c857{/jobs/job/kill,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@310e0cd4{/stages/stage/kill,null,AVAILABLE,@Spark}
+20/04/11 16:18:36 INFO ui.SparkUI: Bound SparkUI to 0.0.0.0, and started at http://vm-75222.lal.in2p3.fr:20100
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///opt/spark-2/sparkMeasure/target/scala-2.11/spark-measure_2.11-0.16-SNAPSHOT.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/spark-measure_2.11-0.16-SNAPSHOT.jar with timestamp 1586614716867
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/org.influxdb_influxdb-java-2.14.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/org.influxdb_influxdb-java-2.14.jar with timestamp 1586614716868
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar with timestamp 1586614716868
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_retrofit-2.4.0.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/com.squareup.retrofit2_retrofit-2.4.0.jar with timestamp 1586614716868
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_converter-moshi-2.4.0.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/com.squareup.retrofit2_converter-moshi-2.4.0.jar with timestamp 1586614716869
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/org.msgpack_msgpack-core-0.8.16.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/org.msgpack_msgpack-core-0.8.16.jar with timestamp 1586614716869
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_okhttp-3.11.0.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/com.squareup.okhttp3_okhttp-3.11.0.jar with timestamp 1586614716869
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_logging-interceptor-3.11.0.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/com.squareup.okhttp3_logging-interceptor-3.11.0.jar with timestamp 1586614716869
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.moshi_moshi-1.5.0.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/com.squareup.moshi_moshi-1.5.0.jar with timestamp 1586614716870
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/com.squareup.okio_okio-1.14.0.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/com.squareup.okio_okio-1.14.0.jar with timestamp 1586614716870
+20/04/11 16:18:36 INFO spark.SparkContext: Added JAR file:///home/chris.arnault/.ivy2/jars/org.slf4j_slf4j-api-1.7.16.jar at spark://vm-75222.lal.in2p3.fr:42665/jars/org.slf4j_slf4j-api-1.7.16.jar with timestamp 1586614716870
+20/04/11 16:18:36 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/org.influxdb_influxdb-java-2.14.jar at spark://vm-75222.lal.in2p3.fr:42665/files/org.influxdb_influxdb-java-2.14.jar with timestamp 1586614716898
+20/04/11 16:18:36 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/org.influxdb_influxdb-java-2.14.jar to /data2/spark_local/spark-c428a868-7350-478c-8071-d05062161e5a/userFiles-0881f543-fb17-4238-9c2c-81744759c7f7/org.influxdb_influxdb-java-2.14.jar
+20/04/11 16:18:36 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar at spark://vm-75222.lal.in2p3.fr:42665/files/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar with timestamp 1586614716907
+20/04/11 16:18:36 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar to /data2/spark_local/spark-c428a868-7350-478c-8071-d05062161e5a/userFiles-0881f543-fb17-4238-9c2c-81744759c7f7/graphframes_graphframes-0.7.0-spark2.4-s_2.11.jar
+20/04/11 16:18:36 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_retrofit-2.4.0.jar at spark://vm-75222.lal.in2p3.fr:42665/files/com.squareup.retrofit2_retrofit-2.4.0.jar with timestamp 1586614716910
+20/04/11 16:18:36 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_retrofit-2.4.0.jar to /data2/spark_local/spark-c428a868-7350-478c-8071-d05062161e5a/userFiles-0881f543-fb17-4238-9c2c-81744759c7f7/com.squareup.retrofit2_retrofit-2.4.0.jar
+20/04/11 16:18:36 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_converter-moshi-2.4.0.jar at spark://vm-75222.lal.in2p3.fr:42665/files/com.squareup.retrofit2_converter-moshi-2.4.0.jar with timestamp 1586614716914
+20/04/11 16:18:36 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.retrofit2_converter-moshi-2.4.0.jar to /data2/spark_local/spark-c428a868-7350-478c-8071-d05062161e5a/userFiles-0881f543-fb17-4238-9c2c-81744759c7f7/com.squareup.retrofit2_converter-moshi-2.4.0.jar
+20/04/11 16:18:36 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/org.msgpack_msgpack-core-0.8.16.jar at spark://vm-75222.lal.in2p3.fr:42665/files/org.msgpack_msgpack-core-0.8.16.jar with timestamp 1586614716917
+20/04/11 16:18:36 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/org.msgpack_msgpack-core-0.8.16.jar to /data2/spark_local/spark-c428a868-7350-478c-8071-d05062161e5a/userFiles-0881f543-fb17-4238-9c2c-81744759c7f7/org.msgpack_msgpack-core-0.8.16.jar
+20/04/11 16:18:36 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_okhttp-3.11.0.jar at spark://vm-75222.lal.in2p3.fr:42665/files/com.squareup.okhttp3_okhttp-3.11.0.jar with timestamp 1586614716920
+20/04/11 16:18:36 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_okhttp-3.11.0.jar to /data2/spark_local/spark-c428a868-7350-478c-8071-d05062161e5a/userFiles-0881f543-fb17-4238-9c2c-81744759c7f7/com.squareup.okhttp3_okhttp-3.11.0.jar
+20/04/11 16:18:36 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_logging-interceptor-3.11.0.jar at spark://vm-75222.lal.in2p3.fr:42665/files/com.squareup.okhttp3_logging-interceptor-3.11.0.jar with timestamp 1586614716924
+20/04/11 16:18:36 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.okhttp3_logging-interceptor-3.11.0.jar to /data2/spark_local/spark-c428a868-7350-478c-8071-d05062161e5a/userFiles-0881f543-fb17-4238-9c2c-81744759c7f7/com.squareup.okhttp3_logging-interceptor-3.11.0.jar
+20/04/11 16:18:36 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.moshi_moshi-1.5.0.jar at spark://vm-75222.lal.in2p3.fr:42665/files/com.squareup.moshi_moshi-1.5.0.jar with timestamp 1586614716927
+20/04/11 16:18:36 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.moshi_moshi-1.5.0.jar to /data2/spark_local/spark-c428a868-7350-478c-8071-d05062161e5a/userFiles-0881f543-fb17-4238-9c2c-81744759c7f7/com.squareup.moshi_moshi-1.5.0.jar
+20/04/11 16:18:36 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/com.squareup.okio_okio-1.14.0.jar at spark://vm-75222.lal.in2p3.fr:42665/files/com.squareup.okio_okio-1.14.0.jar with timestamp 1586614716930
+20/04/11 16:18:36 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/com.squareup.okio_okio-1.14.0.jar to /data2/spark_local/spark-c428a868-7350-478c-8071-d05062161e5a/userFiles-0881f543-fb17-4238-9c2c-81744759c7f7/com.squareup.okio_okio-1.14.0.jar
+20/04/11 16:18:36 INFO spark.SparkContext: Added file file:///home/chris.arnault/.ivy2/jars/org.slf4j_slf4j-api-1.7.16.jar at spark://vm-75222.lal.in2p3.fr:42665/files/org.slf4j_slf4j-api-1.7.16.jar with timestamp 1586614716933
+20/04/11 16:18:36 INFO util.Utils: Copying /home/chris.arnault/.ivy2/jars/org.slf4j_slf4j-api-1.7.16.jar to /data2/spark_local/spark-c428a868-7350-478c-8071-d05062161e5a/userFiles-0881f543-fb17-4238-9c2c-81744759c7f7/org.slf4j_slf4j-api-1.7.16.jar
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Connecting to master spark://134.158.75.222:7077...
+20/04/11 16:18:37 INFO client.TransportClientFactory: Successfully created connection to /134.158.75.222:7077 after 35 ms (0 ms spent in bootstraps)
+20/04/11 16:18:37 INFO cluster.StandaloneSchedulerBackend: Connected to Spark cluster with app ID app-20200411161837-0216
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Executor added: app-20200411161837-0216/0 on worker-20200326093227-134.158.75.172-40854 (134.158.75.172:40854) with 17 core(s)
+20/04/11 16:18:37 INFO cluster.StandaloneSchedulerBackend: Granted executor ID app-20200411161837-0216/0 on hostPort 134.158.75.172:40854 with 17 core(s), 29.0 GB RAM
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Executor added: app-20200411161837-0216/1 on worker-20200326093240-134.158.75.155-46737 (134.158.75.155:46737) with 17 core(s)
+20/04/11 16:18:37 INFO cluster.StandaloneSchedulerBackend: Granted executor ID app-20200411161837-0216/1 on hostPort 134.158.75.155:46737 with 17 core(s), 29.0 GB RAM
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Executor added: app-20200411161837-0216/2 on worker-20200326093229-134.158.75.162-36549 (134.158.75.162:36549) with 17 core(s)
+20/04/11 16:18:37 INFO cluster.StandaloneSchedulerBackend: Granted executor ID app-20200411161837-0216/2 on hostPort 134.158.75.162:36549 with 17 core(s), 29.0 GB RAM
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Executor added: app-20200411161837-0216/3 on worker-20200326093239-134.158.74.177-40183 (134.158.74.177:40183) with 17 core(s)
+20/04/11 16:18:37 INFO cluster.StandaloneSchedulerBackend: Granted executor ID app-20200411161837-0216/3 on hostPort 134.158.74.177:40183 with 17 core(s), 29.0 GB RAM
+20/04/11 16:18:37 INFO util.Utils: Successfully started service 'org.apache.spark.network.netty.NettyBlockTransferService' on port 40038.
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Executor added: app-20200411161837-0216/4 on worker-20200326093236-134.158.75.102-45278 (134.158.75.102:45278) with 17 core(s)
+20/04/11 16:18:37 INFO cluster.StandaloneSchedulerBackend: Granted executor ID app-20200411161837-0216/4 on hostPort 134.158.75.102:45278 with 17 core(s), 29.0 GB RAM
+20/04/11 16:18:37 INFO netty.NettyBlockTransferService: Server created on vm-75222.lal.in2p3.fr:40038
+20/04/11 16:18:37 INFO storage.BlockManager: Using org.apache.spark.storage.RandomBlockReplicationPolicy for block replication policy
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Executor updated: app-20200411161837-0216/3 is now RUNNING
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Executor updated: app-20200411161837-0216/2 is now RUNNING
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Executor updated: app-20200411161837-0216/4 is now RUNNING
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Executor updated: app-20200411161837-0216/1 is now RUNNING
+20/04/11 16:18:37 INFO client.StandaloneAppClient$ClientEndpoint: Executor updated: app-20200411161837-0216/0 is now RUNNING
+20/04/11 16:18:37 INFO storage.BlockManagerMaster: Registering BlockManager BlockManagerId(driver, vm-75222.lal.in2p3.fr, 40038, None)
+20/04/11 16:18:37 INFO storage.BlockManagerMasterEndpoint: Registering block manager vm-75222.lal.in2p3.fr:40038 with 15.3 GB RAM, BlockManagerId(driver, vm-75222.lal.in2p3.fr, 40038, None)
+20/04/11 16:18:37 INFO storage.BlockManagerMaster: Registered BlockManager BlockManagerId(driver, vm-75222.lal.in2p3.fr, 40038, None)
+20/04/11 16:18:37 INFO storage.BlockManager: Initialized BlockManager: BlockManagerId(driver, vm-75222.lal.in2p3.fr, 40038, None)
+20/04/11 16:18:37 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@1e3cc11c{/metrics/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:38 INFO scheduler.EventLoggingListener: Logging events to hdfs://134.158.75.222/spark-history/app-20200411161837-0216
+20/04/11 16:18:38 WARN sparkmeasure.InfluxDBSinkExtended: Custom monitoring listener with InfluxDB sink initializing. Now attempting to connect to InfluxDB
+20/04/11 16:18:38 INFO sparkmeasure.InfluxDBSinkExtended: Found URL for InfluxDB: http://supervision.lal.in2p3.fr:8086
+20/04/11 16:18:38 WARN sparkmeasure.InfluxDBSinkExtended: Credentials for InfluxDB connection not found, using empty username and password, InfluxDB must be running with auth-enabled=false
+20/04/11 16:18:38 INFO sparkmeasure.InfluxDBSinkExtended: InfluxDB name: sparkmeasure
+20/04/11 16:18:38 INFO sparkmeasure.InfluxDBSinkExtended: using InfluxDB database sparkmeasure
+20/04/11 16:18:38 INFO sparkmeasure.InfluxDBSinkExtended: Log also stagemetrics: true
+20/04/11 16:18:38 INFO spark.SparkContext: Registered listener ch.cern.sparkmeasure.InfluxDBSinkExtended
+20/04/11 16:18:38 INFO cluster.StandaloneSchedulerBackend: SchedulerBackend is ready for scheduling beginning after reached minRegisteredResourcesRatio: 0.0
+20/04/11 16:18:38 INFO internal.SharedState: Setting hive.metastore.warehouse.dir ('null') to the value of spark.sql.warehouse.dir ('file:///user/spark/warehouse').
+20/04/11 16:18:38 INFO internal.SharedState: Warehouse path is 'file:///user/spark/warehouse'.
+20/04/11 16:18:38 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@60eb5d56{/SQL,null,AVAILABLE,@Spark}
+20/04/11 16:18:38 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@572c8b1f{/SQL/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:38 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@3a772a0b{/SQL/execution,null,AVAILABLE,@Spark}
+20/04/11 16:18:38 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@17af512b{/SQL/execution/json,null,AVAILABLE,@Spark}
+20/04/11 16:18:38 INFO handler.ContextHandler: Started o.s.j.s.ServletContextHandler@9322726{/static/sql,null,AVAILABLE,@Spark}
+20/04/11 16:18:39 INFO state.StateStoreCoordinatorRef: Registered StateStoreCoordinator endpoint
+graphs=
+batches_edges = 10
+batches_vertices = 10
+degree_max = 1000
+file_format = parquet
+g = 100
+graphs = /user/chris.arnault/graphs/test_N10000_BN10_BE10_D1000_G10000
+graphs_base = /user/chris.arnault/graphs
+grid = 10000
+name = test
+partitions = 300
+read_vertices = False
+set = <bound method Conf.set of <__main__.Conf object at 0x7fc0a3132b00>>
+vertices = 10000
+['']
+batch_create>  /user/chris.arnault/graphs/test_N10000_BN10_BE10_D1000_G10000 vertices total_rows= 10000 batches= 10
+batch>  0  range  0 1000
+-------------------------------- create dataframe | 0h0m1.739s
+-------------------------------- Write block | 0h0m6.650s
+file_size=0.11484375 increment=0.11484375
+batch>  1  range  1000 2000
+-------------------------------- create dataframe | 0h0m2.123s
+-------------------------------- Write block | 0h0m2.344s
+file_size=0.22958984375 increment=0.11474609375
+batch>  2  range  2000 3000
+-------------------------------- create dataframe | 0h0m2.113s
+-------------------------------- Write block | 0h0m1.458s
+file_size=0.34443359375 increment=0.11484375
+batch>  3  range  3000 4000
+-------------------------------- create dataframe | 0h0m2.050s
+-------------------------------- Write block | 0h0m1.936s
+file_size=0.45927734375 increment=0.11484375000000002
+batch>  4  range  4000 5000
+-------------------------------- create dataframe | 0h0m2.092s
+-------------------------------- Write block | 0h0m1.518s
+file_size=0.5740234375 increment=0.11474609374999994
+batch>  5  range  5000 6000
+-------------------------------- create dataframe | 0h0m2.074s
+-------------------------------- Write block | 0h0m2.152s
+file_size=0.6888671875 increment=0.11484375000000002
+batch>  6  range  6000 7000
+-------------------------------- create dataframe | 0h0m2.124s
+-------------------------------- Write block | 0h0m1.523s
+file_size=0.8037109375 increment=0.11484375000000002
+batch>  7  range  7000 8000
+-------------------------------- create dataframe | 0h0m2.078s
+-------------------------------- Write block | 0h0m1.638s
+file_size=0.91845703125 increment=0.11474609375
+batch>  8  range  8000 9000
+-------------------------------- create dataframe | 0h0m2.103s
+-------------------------------- Write block | 0h0m1.494s
+file_size=1.0 increment=0.08154296875
+batch>  9  range  9000 10000
+-------------------------------- create dataframe | 0h0m2.123s
+-------------------------------- Write block | 0h0m1.903s
+file_size=1.1 increment=0.10000000000000009
+-------------------------------- Read full file | 0h0m2.838s
+-------------------------------- creating vertices | 0h0m48.059s
+original partitions # = 85
+effective partitions # = 300
+batch_create>  /user/chris.arnault/graphs/test_N10000_BN10_BE10_D1000_G10000 edges_temp total_rows= 10000 batches= 10
+batch>  0  range  0 1000
+-------------------------------- create dataframe and join | 0h0m15.539s
+-------------------------------- Write block | 0h0m4.819s
+file_size=0.06044921875 increment=0.06044921875
+batch>  1  range  1000 2000
+-------------------------------- create dataframe and join | 0h0m18.082s
+-------------------------------- Write block | 0h0m3.016s
+file_size=0.12626953125 increment=0.0658203125
+batch>  2  range  2000 3000
+-------------------------------- create dataframe and join | 0h0m17.539s
+-------------------------------- Write block | 0h0m2.931s
+file_size=0.187109375 increment=0.06083984374999998
+batch>  3  range  3000 4000
+-------------------------------- create dataframe and join | 0h0m17.697s
+-------------------------------- Write block | 0h0m2.953s
+file_size=0.24814453125 increment=0.06103515625
+batch>  4  range  4000 5000
+-------------------------------- create dataframe and join | 0h0m17.180s
+-------------------------------- Write block | 0h0m2.371s
+file_size=0.31083984375 increment=0.06269531250000002
+batch>  5  range  5000 6000
+-------------------------------- create dataframe and join | 0h0m17.868s
+-------------------------------- Write block | 0h0m2.402s
+file_size=0.366796875 increment=0.05595703125000001
+batch>  6  range  6000 7000
+-------------------------------- create dataframe and join | 0h0m17.481s
+-------------------------------- Write block | 0h0m2.576s
+file_size=0.43134765625 increment=0.06455078124999997
+batch>  7  range  7000 8000
+-------------------------------- create dataframe and join | 0h0m17.388s
+-------------------------------- Write block | 0h0m2.471s
+file_size=0.49619140625 increment=0.06484375000000003
+batch>  8  range  8000 9000
+-------------------------------- create dataframe and join | 0h0m17.295s
+-------------------------------- Write block | 0h0m2.214s
+file_size=0.5494140625 increment=0.05322265625
+batch>  9  range  9000 10000
+-------------------------------- create dataframe and join | 0h0m17.245s
+-------------------------------- Write block | 0h0m3.477s
+file_size=0.6111328125 increment=0.06171874999999993
+-------------------------------- Read full file | 0h0m2.396s
+-------------------------------- Create a GraphFrame | 0h3m27.544s
+count: vertices= 10000 edges= 1444
+-------------------------------- count GraphFrame | 0h0m1.312s
++----+--------------------+--------------------+----+
+|  id|                   x|                   y|cell|
++----+--------------------+--------------------+----+
+|2499|0.016674611079575685|  0.6490016221550094|6401|
+|1504| 0.43130375929150455| 0.02879545942328987| 243|
+|2501| 0.03325642689410857| 0.35681684042434614|3503|
+|2489|   0.960099264103105|0.028850593059982166| 296|
+|1668|  0.9588485978732638|  0.4958521050942174|4995|
+|3817| 0.36173379723855115| 0.40534486419883564|4036|
+| 833| 0.38480749947928206|  0.8411562833931306|8438|
+|1503|  0.4074382935821498| 0.16364602024347574|1640|
+|6652|  0.3734048009383152|0.006556279957899425|  37|
+|1502| 0.02724258934250634|  0.6545839539886942|6502|
+| 820|  0.9322504981605413|  0.9895528194774511|9893|
+|2496|0.028091702004173547| 0.31642658410809854|3102|
+|3822| 0.48723865459403615| 0.40187843822454405|4048|
+|8669|  0.5463256155889394|  0.2803082632350179|2854|
+|5821| 0.24615423534098857|  0.7248567953848735|7224|
+|5162| 0.10143356364516432|  0.2579341385251597|2510|
+|1664|  0.9411185131262468| 0.00489171199837235|  94|
+|1490|  0.2934609136999443|0.029779278093808426| 229|
+|1493|   0.311755969505232| 0.06041699208883833| 631|
+|5173|  0.7507731857334631|  0.5641282032697416|5675|
++----+--------------------+--------------------+----+
+only showing top 20 rows
+
++------+----+----+
+|   eid| src| dst|
++------+----+----+
+|219656|8443|2576|
+|219802|8443|2576|
+|221552|8446|3532|
+|222365|8448|8500|
+|222995|8449|1785|
+|223142|8449|4146|
+|223530|8451|8548|
+|498792|8991|5332|
+|499038|8992| 978|
+|499459|8992|1806|
+|499530|8992|5621|
+|499972|8993|3715|
+|501510|8995|8352|
+|501564|8995|5115|
+|502833|8996| 444|
+|502879|8996|5142|
+|190465|3378|1201|
+|192540|3381|9522|
+|193425|3382|3597|
+|193934|3383|5817|
++------+----+----+
+only showing top 20 rows
+
+20/04/11 16:25:36 ERROR scheduler.TaskSchedulerImpl: Lost executor 2 on 134.158.75.162: Executor heartbeat timed out after 164821 ms
+20/04/11 16:25:36 ERROR netty.Inbox: Ignoring error
+org.apache.spark.SparkException: Could not find CoarseGrainedScheduler.
+	at org.apache.spark.rpc.netty.Dispatcher.postMessage(Dispatcher.scala:160)
+	at org.apache.spark.rpc.netty.Dispatcher.postOneWayMessage(Dispatcher.scala:140)
+	at org.apache.spark.rpc.netty.NettyRpcEnv.send(NettyRpcEnv.scala:187)
+	at org.apache.spark.rpc.netty.NettyRpcEndpointRef.send(NettyRpcEnv.scala:528)
+	at org.apache.spark.scheduler.cluster.CoarseGrainedSchedulerBackend.reviveOffers(CoarseGrainedSchedulerBackend.scala:449)
+	at org.apache.spark.scheduler.TaskSchedulerImpl.executorLost(TaskSchedulerImpl.scala:708)
+	at org.apache.spark.HeartbeatReceiver$$anonfun$org$apache$spark$HeartbeatReceiver$$expireDeadHosts$3.apply(HeartbeatReceiver.scala:199)
+	at org.apache.spark.HeartbeatReceiver$$anonfun$org$apache$spark$HeartbeatReceiver$$expireDeadHosts$3.apply(HeartbeatReceiver.scala:195)
+	at scala.collection.TraversableLike$WithFilter$$anonfun$foreach$1.apply(TraversableLike.scala:733)
+	at scala.collection.mutable.HashMap$$anonfun$foreach$1.apply(HashMap.scala:130)
+	at scala.collection.mutable.HashMap$$anonfun$foreach$1.apply(HashMap.scala:130)
+	at scala.collection.mutable.HashTable$class.foreachEntry(HashTable.scala:236)
+	at scala.collection.mutable.HashMap.foreachEntry(HashMap.scala:40)
+	at scala.collection.mutable.HashMap.foreach(HashMap.scala:130)
+	at scala.collection.TraversableLike$WithFilter.foreach(TraversableLike.scala:732)
+	at org.apache.spark.HeartbeatReceiver.org$apache$spark$HeartbeatReceiver$$expireDeadHosts(HeartbeatReceiver.scala:195)
+	at org.apache.spark.HeartbeatReceiver$$anonfun$receiveAndReply$1.applyOrElse(HeartbeatReceiver.scala:118)
+	at org.apache.spark.rpc.netty.Inbox$$anonfun$process$1.apply$mcV$sp(Inbox.scala:105)
+	at org.apache.spark.rpc.netty.Inbox.safelyCall(Inbox.scala:205)
+	at org.apache.spark.rpc.netty.Inbox.process(Inbox.scala:101)
+	at org.apache.spark.rpc.netty.Dispatcher$MessageLoop.run(Dispatcher.scala:221)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+20/04/11 16:26:36 ERROR scheduler.TaskSchedulerImpl: Lost an executor 2 (already removed): Executor heartbeat timed out after 224821 ms
+20/04/11 16:26:36 ERROR scheduler.TaskSchedulerImpl: Lost executor 1 on 134.158.75.155: Executor heartbeat timed out after 225225 ms
+20/04/11 16:26:36 ERROR netty.Inbox: Ignoring error
+org.apache.spark.SparkException: Could not find CoarseGrainedScheduler.
+	at org.apache.spark.rpc.netty.Dispatcher.postMessage(Dispatcher.scala:160)
+	at org.apache.spark.rpc.netty.Dispatcher.postOneWayMessage(Dispatcher.scala:140)
+	at org.apache.spark.rpc.netty.NettyRpcEnv.send(NettyRpcEnv.scala:187)
+	at org.apache.spark.rpc.netty.NettyRpcEndpointRef.send(NettyRpcEnv.scala:528)
+	at org.apache.spark.scheduler.cluster.CoarseGrainedSchedulerBackend.reviveOffers(CoarseGrainedSchedulerBackend.scala:449)
+	at org.apache.spark.scheduler.TaskSchedulerImpl.executorLost(TaskSchedulerImpl.scala:708)
+	at org.apache.spark.HeartbeatReceiver$$anonfun$org$apache$spark$HeartbeatReceiver$$expireDeadHosts$3.apply(HeartbeatReceiver.scala:199)
+	at org.apache.spark.HeartbeatReceiver$$anonfun$org$apache$spark$HeartbeatReceiver$$expireDeadHosts$3.apply(HeartbeatReceiver.scala:195)
+	at scala.collection.TraversableLike$WithFilter$$anonfun$foreach$1.apply(TraversableLike.scala:733)
+	at scala.collection.mutable.HashMap$$anonfun$foreach$1.apply(HashMap.scala:130)
+	at scala.collection.mutable.HashMap$$anonfun$foreach$1.apply(HashMap.scala:130)
+	at scala.collection.mutable.HashTable$class.foreachEntry(HashTable.scala:236)
+	at scala.collection.mutable.HashMap.foreachEntry(HashMap.scala:40)
+	at scala.collection.mutable.HashMap.foreach(HashMap.scala:130)
+	at scala.collection.TraversableLike$WithFilter.foreach(TraversableLike.scala:732)
+	at org.apache.spark.HeartbeatReceiver.org$apache$spark$HeartbeatReceiver$$expireDeadHosts(HeartbeatReceiver.scala:195)
+	at org.apache.spark.HeartbeatReceiver$$anonfun$receiveAndReply$1.applyOrElse(HeartbeatReceiver.scala:118)
+	at org.apache.spark.rpc.netty.Inbox$$anonfun$process$1.apply$mcV$sp(Inbox.scala:105)
+	at org.apache.spark.rpc.netty.Inbox.safelyCall(Inbox.scala:205)
+	at org.apache.spark.rpc.netty.Inbox.process(Inbox.scala:101)
+	at org.apache.spark.rpc.netty.Dispatcher$MessageLoop.run(Dispatcher.scala:221)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
