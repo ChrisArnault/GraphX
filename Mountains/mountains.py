@@ -20,18 +20,19 @@ base_grid_size = 1000
 cell_grid_size = 100
 
 
-def cell_id(grid_size, x, y):
+def cell_id(grid_size, _x, _y):
     """ compute a cell id from a x, y coordinate """
-    return int(x * grid_size) + grid_size * int(y * grid_size)
+    return int(_x * grid_size) + grid_size * int(_y * grid_size)
 
-def x_cell(cell_id, grid_size):
+
+def x_cell(_cell_id, grid_size):
     """ compute the x column from the cell_id """
-    return cell_id % grid_size
+    return _cell_id % grid_size
 
 
-def y_cell(cell_id, grid_size):
+def y_cell(_cell_id, grid_size):
     """ compute the y row from the cell_id """
-    return cell_id / grid_size
+    return _cell_id / grid_size
 
 
 def neighbour(grid_size, cell1, cell2):
@@ -42,8 +43,8 @@ def neighbour(grid_size, cell1, cell2):
     """
     t1 = cell1 == cell2
 
-    dx = abs(x_cell(cell_id=cell1, grid_size=grid_size) - x_cell(cell_id=cell2, grid_size=grid_size))
-    dy = abs(y_cell(cell_id=cell1, grid_size=grid_size) - y_cell(cell_id=cell2, grid_size=grid_size))
+    dx = abs(x_cell(_cell_id=cell1, grid_size=grid_size) - x_cell(_cell_id=cell2, grid_size=grid_size))
+    dy = abs(y_cell(_cell_id=cell1, grid_size=grid_size) - y_cell(_cell_id=cell2, grid_size=grid_size))
 
     t2 = (dx == 0) & (dy == 1)
     t3 = (dx == 0) & (dy == grid_size - 1)
@@ -74,37 +75,6 @@ def gaussian_model(matrix, maxvalue, meanvalue, sigma):
 # create vectors for the grid
 x_vector = lambda grid_column, grid_size: (np.arange(0, grid_size, 1, float) / grid_size) + grid_column
 y_vector = lambda grid_row, grid_size: (np.arange(0, grid_size, 1, float) / grid_size) + grid_row
-
-def cell_iterator(initialize, function, test_stop):
-    radius = 0
-    while True:
-        # print("radius=", radius)
-        if radius == 0:
-            initialize()
-        else:
-            # bottom line
-            row = -radius
-            for column in range(-radius, radius + 1):
-                function()
-
-            column = -radius
-            for row in range(-radius + 1, radius):
-                function()
-
-            column = radius
-            for row in range(-radius + 1, radius):
-                function()
-
-            row = radius
-            for column in range(-radius, radius+1):
-                function()
-
-            if test_stop():
-                break
-
-        radius += 1
-
-    return radius
 
 
 class CellIterator(object):
@@ -154,7 +124,7 @@ class CellIterator(object):
         return self.radius
 
 
-class MyIterator(CellIterator):
+class MountainBuilder(CellIterator):
     def __init__(self, x_peak, y_peak, height, width, grid_size):
         """
         install a mountains in a circular 2D space. [0, 1[ x [0, 1[
@@ -184,14 +154,13 @@ class MyIterator(CellIterator):
         self.central_grid = None
 
     def initialize(self):
-        # print("myinitialize>", self.radius, "col=", self.column, "row=", self.row)
         self.central_grid, self.central_sum = self.create_grid(0, 0)
 
     def iterate(self):
         # print("myiterate>", self.radius, "col=", self.column, "row=", self.row, "max_sum=", self.max_sum)
-        self.local_grid, self.local_sum = self.create_grid(self.row, self.column)
-        self.central_grid += self.local_grid
-        self.max_sum = max([self.local_sum, self.max_sum])
+        local_grid, local_sum = self.create_grid(self.row, self.column)
+        self.central_grid += local_grid
+        self.max_sum = max([local_sum, self.max_sum])
 
     def test_stop(self):
         # print("mytest_stop>", self.radius, "col=", self.column, "row=", self.row)
@@ -222,15 +191,14 @@ class MyIterator(CellIterator):
         return new_grid, np.sum(new_grid)
 
 
-
 class Object(object):
     def __init__(self, object_id, object_x, object_y):
         self.id = object_id
         self.x = object_x
         self.y = object_y
         self.cell_id = cell_id(grid_size=cell_grid_size,
-                               x=self.x % cell_grid_size,
-                               y=self.y % cell_grid_size)
+                               _x=self.x % cell_grid_size,
+                               _y=self.y % cell_grid_size)
 
     def dist(self, other):
         return np.sqrt(np.power(self.x - other.x, 2) + np.power(self.y - other.y, 2))
@@ -242,13 +210,13 @@ for i in range(40):
     if i % 10 == 0:
         print("install expansion zone", i, x0, y0)
 
-    cell_iterator = MyIterator(x_peak=x0,
-                               y_peak=y0,
-                               height=np.random.random()/2,
-                               width=np.random.random()/2,
-                               grid_size=base_grid_size)
+    builder = MountainBuilder(x_peak=x0,
+                              y_peak=y0,
+                              height=np.random.random()/2,
+                              width=np.random.random()/2,
+                              grid_size=base_grid_size)
 
-    z = cell_iterator.run()
+    z = builder.run()
 
     if space is None:
         space = z
