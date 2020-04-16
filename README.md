@@ -75,7 +75,7 @@ Results
 <td>10</td>
 <td></td>
 <td>1000</td>
-<td>100</td>
+<td>200</td>
 <td></td>
 <td></td>
 </tr>
@@ -87,6 +87,15 @@ Results
 <td>100</td>
 <td>147045</td>
 <td>4h33h24.873s</td>
+</tr>
+<tr>
+<td>1000000</td>
+<td>10</td>
+<td>0h1m30.198s</td>
+<td>1000</td>
+<td>200</td>
+<td>147003</td>
+<td>4h47h24.070s</td>
 </tr>
 </table>
 
