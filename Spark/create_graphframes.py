@@ -247,7 +247,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches, ve
         increment = new_size - previous_size
         previous_size = new_size
         row += rows
-        print("file_size={} increment={}".format(new_size, increment))
+        print("file_size={}M increment={}M".format(new_size, increment))
 
     df = spark.read.format("parquet").load(file_name)
     local_stepper.show_step("Read full file")
