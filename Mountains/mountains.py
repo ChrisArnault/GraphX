@@ -9,18 +9,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 
+import mountain_space
 
-space = None
 """
-we create a base grid 
-then we divide the base grid in a grid of cells
-by definition: cell_grid_size < grid
+Now the space is filled with a repulsive field
+We start populating it with objects
 """
-space_grid_size = 1000   # division of space in points
-
-cell_grid_size = 100   # division of space in cells
-cell_width = space_grid_size / cell_grid_size # cell width in space points
-distance_max = 0.01
 
 
 def cell_id(grid_size, _x, _y):
@@ -58,7 +52,7 @@ def neighbour(grid_size, cell1, cell2):
 
     xc1 = x_cell_from_id(_cell_id=cell1, grid_size=grid_size)
     xc2 = x_cell_from_id(_cell_id=cell2, grid_size=grid_size)
-    
+
     yc1 = y_cell_from_id(_cell_id=cell1, grid_size=grid_size)
     yc2 = y_cell_from_id(_cell_id=cell2, grid_size=grid_size)
 
@@ -79,145 +73,12 @@ def neighbour(grid_size, cell1, cell2):
     return t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9
 
 
-def gaussian_model(matrix, maxvalue, meanvalue, sigma):
-    """
-    populate a matrix with a gaussian distribution
-    :param matrix: the matrix
-    :param maxvalue: height
-    :param meanvalue: location of the peak within the matrix
-    :param sigma: width
-    :return: the filled matrix
-    """
-    return maxvalue * np.exp(-(matrix - meanvalue)**2 / (2 * sigma**2))
-
-
-# create vectors for the grid
-x_vector = lambda grid_column, grid_size: (np.arange(0, grid_size, 1, float) / grid_size) + grid_column
-y_vector = lambda grid_row, grid_size: (np.arange(0, grid_size, 1, float) / grid_size) + grid_row
-
-
-class CellIterator(object):
-    def __init__(self):
-        self.radius = 0
-        self.row = 0
-        self.column = 0
-
-    def initialize(self):
-        print("initialize>", self.radius)
-
-    def iterate(self):
-        print("iterate>", self.radius)
-
-    def test_stop(self):
-        print("test_stop>", self.radius)
-        return True
-
-    def run(self):
-        self.radius = 0
-        while True:
-            # print("radius=", radius)
-            if self.radius == 0:
-                self.initialize()
-            else:
-                # bottom line
-                self.row = -self.radius
-                for self.column in range(-self.radius, self.radius + 1):
-                    self.iterate()
-
-                self.column = -self.radius
-                for self.row in range(-self.radius + 1, self.radius):
-                    self.iterate()
-
-                self.column = self.radius
-                for self.row in range(-self.radius + 1, self.radius):
-                    self.iterate()
-
-                self.row = self.radius
-                for self.column in range(-self.radius, self.radius + 1):
-                    self.iterate()
-
-                if self.test_stop():
-                    break
-
-            self.radius += 1
-
-        return self.radius
-
-
-class MountainBuilder(CellIterator):
-    def __init__(self, x_peak, y_peak, height, width, grid_size):
-        """
-        install a mountains in a circular 2D space. [0, 1[ x [0, 1[
-        the space is filled as a square grid
-        The mountain is propagated circularly left-right and top-bottom
-
-        :param x_peak: X location of the peak
-        :param y_peak: Y location of the peak
-        :param height: Peak height
-        :param width: Peak width
-        :param grid_size:
-        :return: the sum of the grid, the filled space grid
-        """
-
-        CellIterator.__init__(self)
-
-        self.x_peak = x_peak
-        self.y_peak = y_peak
-        self.height = height
-        self.width = width
-        self.grid_size = grid_size
-        self.sigma = width / 4.0 / np.sqrt(2.0)
-
-        self.epsilon = 1.0/1000
-        self.central_sum = None
-        self.max_sum = 0
-        self.central_grid = None
-
-    def initialize(self):
-        self.central_grid, self.central_sum = self.create_grid(0, 0)
-
-    def iterate(self):
-        # print("myiterate>", self.radius, "col=", self.column, "row=", self.row, "max_sum=", self.max_sum)
-        local_grid, local_sum = self.create_grid(self.row, self.column)
-        self.central_grid += local_grid
-        self.max_sum = max([local_sum, self.max_sum])
-
-    def test_stop(self):
-        # print("mytest_stop>", self.radius, "col=", self.column, "row=", self.row)
-        ok = self.max_sum < (self.central_sum * self.epsilon)
-        self.max_sum = 0
-        return ok
-
-    def run(self):
-        CellIterator.run(self)
-        return self.central_grid
-
-    def create_grid(self, g_row, g_column):
-        """
-        to make it circular we extend the model to all neighbour regions around until the max value is lower
-        than epsilon
-        """
-
-        vx = x_vector(g_column, self.grid_size)
-        vy = y_vector(g_row, self.grid_size)
-        vy = vy[:, np.newaxis]  # transpose y
-
-        gx = gaussian_model(vx, self.height, self.x_peak, self.sigma)
-        gy = gaussian_model(vy, self.height, self.y_peak, self.sigma)
-        new_grid = gx * gy
-
-        # print("row=", row, "column=", column, "h=", grid_sum, grid, x_peak, y_peak)
-
-        return new_grid, np.sum(new_grid)
-
-
-class ObjectConnector(CellIterator):
-    def __init__(self, dist_max, cell0):
-        """
-        """
-        CellIterator.__init__(self)
+class ObjectConnector(mountain_space.CellIterator):
+    def __init__(self, dist_max, obj):
+        mountain_space.CellIterator.__init__(self)
         self.dist_max = dist_max
-        self.cell0 = int(cell0)
+        self.object = obj
+        self.cell0 = obj.cell_id
         self.cell_column0 = 0
         self.cell_row0 = 0
         self.cell = self.cell0
@@ -236,7 +97,8 @@ class ObjectConnector(CellIterator):
         self.cell = column + cell_grid_size * row
 
     def distance(self):
-        cell_dist = np.sqrt(np.power(self.cell_column - self.cell_column0, 2) + np.power(self.cell_row - self.cell_row0, 2))
+        cell_dist = np.sqrt(np.power(self.cell_column - self.cell_column0, 2) +
+                            np.power(self.cell_row - self.cell_row0, 2))
         dist = cell_dist * cell_width / space_grid_size
         return dist
 
@@ -247,12 +109,17 @@ class ObjectConnector(CellIterator):
         self.largest_distance = self.distance()
         self.step = 0
 
-        print("=============================init cell=", self.cell, "x=", self.cell_column, "y=", self.cell_row, "step=", self.step)
+        """
+        print("=============================init cell=", self.cell,
+              "x=", self.cell_column, "y=", self.cell_row,
+              "step=", self.step)
+        """
 
         if self.cell in Objects:
             objects_in_cell = Objects[self.cell]
-            print("look for all objects in cell", self.cell, len(objects_in_cell))
-
+            # print("look for all objects in cell", self.cell, len(objects_in_cell))
+            for _o in objects_in_cell:
+                self.object.connect(_o)
 
     def iterate(self):
         self.step += 1
@@ -268,11 +135,12 @@ class ObjectConnector(CellIterator):
 
     def test_stop(self):
         self.locate_cell()
-        # print("===== test stop cell=", self.cell, "x=", self.cell_column, "y=", self.cell_row, "step=", self.step, "largest dist=", self.largest_distance)
+        # print("===== test stop cell=", self.cell, "x=", self.cell_column, "y=", self.cell_row,
+        # "step=", self.step, "largest dist=", self.largest_distance)
         return self.largest_distance > (2 * self.dist_max)
 
     def run(self):
-        CellIterator.run(self)
+        mountain_space.CellIterator.run(self)
 
 
 Objects = dict()
@@ -284,45 +152,65 @@ class Object(object):
         self.x = object_x
         self.y = object_y
         self.cell_id = cell_id(grid_size=cell_grid_size, _x=self.x, _y=self.y)
+        self.declare()
+        self.edges = []
+
+    def declare(self):
+        if self.cell_id in Objects:
+            objects_in_cell = Objects[o.cell_id]
+        else:
+            objects_in_cell = []
+
+        # print("cell for object cell=", o.cell_id, len(objects_in_cell))
+
+        objects_in_cell.append(self)
+        Objects[self.cell_id] = objects_in_cell
 
     def dist(self, other):
         return np.sqrt(np.power(self.x - other.x, 2) + np.power(self.y - other.y, 2))
 
+    def connect(self, other):
+        self.edges.append(other)
 
-for i in range(40):
-    x0 = np.random.random()
-    y0 = np.random.random()
-    if i % 10 == 0:
-        print("install expansion zone", i, x0, y0)
 
-    builder = MountainBuilder(x_peak=x0,
-                              y_peak=y0,
-                              height=np.random.random()/2,
-                              width=np.random.random(),
-                              grid_size=space_grid_size)
+def interpolate(from_space, _x, _y):
+    """
+    Compute the field @ x, y by interpolating the quantized field in space
+    """
+    g = from_space.shape[0]
+    x1 = int(_x*g)
+    y1 = int(_y*g)
+    xx2 = (x1 + 1) % g
+    yy2 = (y1 + 1) % g
 
-    z = builder.run()
+    z1 = from_space[y1, x1]
+    z2 = from_space[y1, xx2]
+    z3 = from_space[yy2, x1]
 
-    if space is None:
-        space = z
-    else:
-        space += z
+    b = z2 - z1
+    a = z3 - z1
+    c = z1 - a*x1 - b*y1
+
+    _z = (a*_x*g + b*_y*g + c)
+
+    # print("interpolation ", x, y, "x, y=", x1, y1, "xx, yy=", xx2, yy2, "zi=", z1, z2, z3, z4, "z=", z)
+
+    return _z
+
+
+space = mountain_space.build_space(fields=4, space_grid_size=10)
+space_grid_size = space.shape[0]
+
+cell_grid_size = 4                              # division of space in cells
+cell_width = space_grid_size / cell_grid_size   # cell width in space points
+distance_max = 0.01
 
 fig, axe1 = plt.subplots(1, 1, subplot_kw={'projection': '3d', 'aspect': 'equal'})
 # ax.plot_wireframe(x, y, space, color='r')
 # ax.scatter(xi, yi, zi, s=1, c='r', zorder=1)
 
-print("space range initial", np.min(space), np.max(space))
-space -= np.min(space)
-space /= np.max(space)
-print("normalized space range", np.min(space), np.max(space))
-space = 1 - space
-print("inverse space range", np.min(space), np.max(space), space.shape)
-space *= space
-space *= space
-space *= space
-
-axe1.plot_surface(x_vector(0, space_grid_size), y_vector(0, space_grid_size)[:, np.newaxis], space, color='r')
+axe1.plot_surface(mountain_space.x_vector(0, space_grid_size),
+                  mountain_space.y_vector(0, space_grid_size)[:, np.newaxis], space, color='r')
 # plt.show()
 
 axe2 = plt.subplot2grid((1, 1), (0, 0))
@@ -334,25 +222,14 @@ n = 0
 for i in range(1000000):
     x = np.random.random()
     y = np.random.random()
-    z = space[int(y * space_grid_size), int(x * space_grid_size)]
+    z = interpolate(from_space=space, _x=x, _y=y)
     p = np.random.random()
     if p > z:
         continue
 
     o = Object(object_id=n, object_x=x, object_y=y)
 
-
-    if o.cell_id in Objects:
-        objects_in_cell = Objects[o.cell_id]
-    else:
-        objects_in_cell = []
-
-    print("cell for object", o.cell_id, len(objects_in_cell))
-
-    objects_in_cell.append(o)
-    Objects[o.cell_id] = objects_in_cell
-
-    connector = ObjectConnector(dist_max=distance_max, cell0=o.cell_id)
+    connector = ObjectConnector(dist_max=distance_max, obj=o)
     connector.run()
 
     """
@@ -367,6 +244,10 @@ for i in range(1000000):
     n += 1
 
     if (n % 1000) == 0:
+        p1 = (0.1, 0.1)
+        p2 = (0.8, 0.8)
+        axe2.plot(p1, p2, 'r')
+
         print("generating", n)
         axe2.scatter(ox, oy, color='k', s=1)
         plt.pause(0.00001)
