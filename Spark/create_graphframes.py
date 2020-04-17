@@ -312,7 +312,7 @@ edge_values = lambda start, stop: [(i, e[0], e[1]) for i, e in enumerate(edge_it
                                                                                  conf.degree_max))]
 
 edges = batch_create(directory=conf.graphs,
-                     file="edges_temp",
+                     file="edges",
                      build_values=edge_values,
                      columns=["eid", "src", "dst"],
                      total_rows=conf.vertices,

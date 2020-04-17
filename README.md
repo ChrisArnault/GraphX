@@ -51,6 +51,7 @@ Results
 <td>e_batches</td>
 <td>edges</td>
 <td>total time</td>
+<td>degree</td>
 </thead>
 <tr>
 <td>1000</td>
@@ -60,23 +61,26 @@ Results
 <td>1</td>
 <td>14</td>
 <td>0h0m10.283s</td>
+<td>0h0m7.969s</td>
 </tr>
 <tr>
 <td>10000</td>
 <td>10</td>
-<td>0h0m48.059s</td>
+<td>0h0m54.576s</td>
 <td>1000</td>
 <td>10</td>
-<td>1444</td>
-<td>0h3m27.544s</td>
+<td>1452</td>
+<td>0h3m35.159s</td>
+<td>0h0m7.735s</td>
 </tr>
 <tr>
 <td>100000</td>
 <td>10</td>
-<td></td>
+<td>0h0m57.864s</td>
 <td>1000</td>
 <td>200</td>
-<td></td>
+<td>14749</td>
+<td>0h42m32.747s</td>
 <td></td>
 </tr>
 <tr>
@@ -87,6 +91,7 @@ Results
 <td>100</td>
 <td>147045</td>
 <td>4h33h24.873s</td>
+<td></td>
 </tr>
 <tr>
 <td>1000000</td>
@@ -96,6 +101,7 @@ Results
 <td>200</td>
 <td>147003</td>
 <td>4h47h24.070s</td>
+<td></td>
 </tr>
 </table>
 
