@@ -114,6 +114,6 @@ s.show_step("Get a DataFrame with columns id and degree")
 triangles = g.triangleCount()
 c = triangles.count()
 triangles.show()
-s.show_step("Get triangle count", c)
+s.show_step("Get triangle count")
 
 spark.sparkContext.stop()
