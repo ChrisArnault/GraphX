@@ -106,12 +106,12 @@ g.vertices.show(10)
 g.edges.show(10)
 s.show_step("Display the vertex and edge DataFrames")
 
-exit()
-
 vertexDegrees = g.degrees
 vertexDegrees.count()
 vertexDegrees.show()
 s.show_step("Get a DataFrame with columns id and degree")
+
+exit()
 
 triangles = g.triangleCount()
 c = triangles.count()
