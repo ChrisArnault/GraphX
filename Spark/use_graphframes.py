@@ -111,8 +111,6 @@ vertexDegrees.count()
 vertexDegrees.show()
 s.show_step("Get a DataFrame with columns id and degree")
 
-exit()
-
 triangles = g.triangleCount()
 c = triangles.count()
 triangles.show()

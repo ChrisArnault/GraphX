@@ -81,7 +81,7 @@ Results
 <td>200</td>
 <td>14749</td>
 <td>0h42m32.747s</td>
-<td></td>
+<td>0h0m17.488s</td>
 </tr>
 <tr>
 <td>1000000</td>
@@ -91,7 +91,7 @@ Results
 <td>100</td>
 <td>147045</td>
 <td>4h33h24.873s</td>
-<td></td>
+<td>0h0m10.379s</td>
 </tr>
 <tr>
 <td>1000000</td>
@@ -101,7 +101,7 @@ Results
 <td>200</td>
 <td>147003</td>
 <td>4h47h24.070s</td>
-<td></td>
+<td>0h0m10.183s</td>
 </tr>
 </table>
 
