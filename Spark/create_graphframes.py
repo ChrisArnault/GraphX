@@ -7,6 +7,7 @@ import subprocess
 import signal
 import time
 import numpy as np
+import gc
 
 has_spark = os.name != 'nt'
 
@@ -211,6 +212,8 @@ def batch_create(directory, file, build_values, columns, total_rows, batches, ve
     for batch in range(loops):
         print("batch> ", batch, " range ", row, row + rows)
 
+        gc.collect()
+
         if vertices is None:
             df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
             local_stepper.show_step("create dataframe")
@@ -227,13 +230,14 @@ def batch_create(directory, file, build_values, columns, total_rows, batches, ve
             # "eid", "src", "dst"
 
             df = sqlContext.createDataFrame(build_values(row, row + rows), columns).\
-                repartition(1000, "eid").\
-                join(src, (src.src_id == df.src), how="inner"). \
-                join(dst, (dst.dst_id == df.dst) &
-                     (dst.dst_id != src.src_id) &
-                     neighbour(grid_size, dst.dst_cell, src.src_cell),
-                     how="inner").\
-                select("eid", "src", "dst")
+                repartition(1000, "eid")
+            
+            df = df.join(src, (src.src_id == df.src), how="inner"). \
+                    join(dst, (dst.dst_id == df.dst) &
+                              (dst.dst_id != src.src_id) &
+                               neighbour(grid_size, dst.dst_cell, src.src_cell),
+                         how="inner").\
+                    select("eid", "src", "dst")
 
             local_stepper.show_step("create dataframe and join")
 
