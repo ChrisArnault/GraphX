@@ -99,8 +99,29 @@ class ObjectConnector(mountain_space.CellIterator):
     def distance(self):
         cell_dist = np.sqrt(np.power(self.cell_column - self.cell_column0, 2) +
                             np.power(self.cell_row - self.cell_row0, 2))
-        dist = cell_dist * cell_width / space_grid_size
+        # dist = cell_dist * cell_width / space_grid_size
+        dist = cell_dist * cell_width
         return dist
+
+    def connect(self):
+        if self.cell not in Objects:
+            # print("connect> current cell not in Objects", self.cell)
+            return
+
+        objects_in_cell = Objects[self.cell]
+        # print("look for all objects in cell", self.cell, len(objects_in_cell))
+        for _o in objects_in_cell:
+            if self.object.id == _o.id:
+                continue
+            if self.object.dist(_o) > distance_max:
+                print("connect> current object", self.object.id, "not neighbour of", _o.id)
+                continue
+            print("connect o=", self.object.id, self.object.x, self.object.y, "to=", _o.id, _o.x, _o.y)
+            edgex = (self.object.x, _o.x)
+            edgey = (self.object.y, _o.y)
+            self.axe.plot(edgex, edgey, "r")
+
+            self.object.connect(_o)
 
     def initialize(self):
         self.cell_column0 = x_cell_from_id(self.cell0, cell_grid_size)
@@ -108,6 +129,7 @@ class ObjectConnector(mountain_space.CellIterator):
         self.locate_cell()
         self.largest_distance = self.distance()
         self.step = 0
+        self.connect()
 
         """
         print("=============================init cell=", self.cell,
@@ -115,23 +137,17 @@ class ObjectConnector(mountain_space.CellIterator):
               "step=", self.step)
         """
 
-        if self.cell in Objects:
-            objects_in_cell = Objects[self.cell]
-            # print("look for all objects in cell", self.cell, len(objects_in_cell))
-            for _o in objects_in_cell:
-                self.object.connect(_o)
 
     def iterate(self):
         self.step += 1
         self.locate_cell()
         dist = self.distance()
         self.largest_distance = max(dist, self.largest_distance)
+        self.connect()
 
-        """
         print("iterate cell=", self.cell,
               "cell col=", self.cell_column, "cell row=", self.cell_row,
               "col=", self.column, "row=", self.row, "dist=", dist, self.largest_distance)
-        """
 
     def test_stop(self):
         self.locate_cell()
@@ -139,7 +155,8 @@ class ObjectConnector(mountain_space.CellIterator):
         # "step=", self.step, "largest dist=", self.largest_distance)
         return self.largest_distance > (2 * self.dist_max)
 
-    def run(self):
+    def run(self, axe):
+        self.axe = axe
         mountain_space.CellIterator.run(self)
 
 
@@ -198,12 +215,12 @@ def interpolate(from_space, _x, _y):
     return _z
 
 
-space = mountain_space.build_space(fields=4, space_grid_size=10)
+space = mountain_space.build_space(fields=40, space_grid_size=100)
 space_grid_size = space.shape[0]
 
-cell_grid_size = 4                              # division of space in cells
+cell_grid_size = 100                              # division of space in cells
 cell_width = space_grid_size / cell_grid_size   # cell width in space points
-distance_max = 0.01
+distance_max = cell_width
 
 fig, axe1 = plt.subplots(1, 1, subplot_kw={'projection': '3d', 'aspect': 'equal'})
 # ax.plot_wireframe(x, y, space, color='r')
@@ -230,7 +247,7 @@ for i in range(1000000):
     o = Object(object_id=n, object_x=x, object_y=y)
 
     connector = ObjectConnector(dist_max=distance_max, obj=o)
-    connector.run()
+    connector.run(axe2)
 
     """
     we now look for neighbour objects:
@@ -243,13 +260,15 @@ for i in range(1000000):
 
     n += 1
 
-    if (n % 1000) == 0:
-        p1 = (0.1, 0.1)
-        p2 = (0.8, 0.8)
-        axe2.plot(p1, p2, 'r')
+    if (n % 10) == 0:
+
+        for row in range(cell_grid_size):
+            axe2.plot((0, 1), (row/cell_grid_size, row/cell_grid_size), "g")
+            for col in range(cell_grid_size):
+                axe2.plot((col / cell_grid_size, col / cell_grid_size), (0, 1), "g")
 
         print("generating", n)
         axe2.scatter(ox, oy, color='k', s=1)
-        plt.pause(0.00001)
+        plt.pause(0.1)
 
 plt.show()

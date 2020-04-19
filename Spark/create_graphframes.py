@@ -32,7 +32,7 @@ class Conf(object):
         self.batches_vertices = 1
         self.batches_edges = 1
         self.degree_max = 100
-        self.partitions = 300
+        self.partitions = 1000
         self.file_format = "parquet"
         self.graphs_base = "/user/chris.arnault/graphs"
         self.name = "test"
@@ -74,7 +74,7 @@ class Conf(object):
   batches_vertices|BN|bn = 1
   batches_edges|BE|be = 1
   degree_max|D|d = 100
-  partitions|P|p = 300
+  partitions|P|p = 1000
   grid|G|g = 10000
   name|F|f = "test"
   read_vertices|R|r = False
@@ -226,8 +226,9 @@ def batch_create(directory, file, build_values, columns, total_rows, batches, ve
             # "dst_id", "x", "y", "dst_cell"
             # "eid", "src", "dst"
 
-            df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
-            df = df.join(src, (src.src_id == df.src), how="inner"). \
+            df = sqlContext.createDataFrame(build_values(row, row + rows), columns).\
+                repartition(1000, "eid").\
+                join(src, (src.src_id == df.src), how="inner"). \
                 join(dst, (dst.dst_id == df.dst) &
                      (dst.dst_id != src.src_id) &
                      neighbour(grid_size, dst.dst_cell, src.src_cell),

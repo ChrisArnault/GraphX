@@ -161,7 +161,7 @@ def build_space(fields, space_grid_size):
         builder = MountainBuilder(x_peak=x0,
                                   y_peak=y0,
                                   height=np.random.random()/2,
-                                  width=np.random.random(),
+                                  width=np.random.random()/2,
                                   grid_size=space_grid_size)
 
         z = builder.run()
