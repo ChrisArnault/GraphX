@@ -27,16 +27,16 @@ class CellIterator(object):
                 for self.column in range(-self.radius, self.radius + 1):
                     self.iterate()
 
-                self.column = -self.radius
-                for self.row in range(-self.radius + 1, self.radius):
-                    self.iterate()
-
                 self.column = self.radius
-                for self.row in range(-self.radius + 1, self.radius):
+                for self.row in range(-self.radius + 1, self.radius + 1):
                     self.iterate()
 
                 self.row = self.radius
-                for self.column in range(-self.radius, self.radius + 1):
+                for self.column in range(self.radius - 1, -self.radius - 1, -1):
+                    self.iterate()
+
+                self.column = -self.radius
+                for self.row in range(self.radius - 1, -self.radius, -1):
                     self.iterate()
 
                 if self.test_stop():

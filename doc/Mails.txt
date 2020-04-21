@@ -1,0 +1,65 @@
+=========================== Chardin 20 avril
+
+Comme promis, quelques éléments de réponse supplémentaires.
+L'idée de regarder les zones en sous-densité comme des objets
+de masse négative en relativité générale revient sans doute
+à Tsvi Piran et John Dubinski. J'aime beaucoup le petit article
+joint de Tsvi Piran à ce sujet. Cela a été exploité ensuite
+observationnellement par l''étude des vides, par exemple par
+Sheth et collaborateurs. 
+
+L'idée que ces sous-densités puisse en fait héberger de l'antimatière
+est l'idée que j'ai développée, avec une étude cosmologique
+commencée en 2006, et que je reprends depuis deux ans avec
+Giovanni Manfredi et ses collaborateurs.
+Un exposé accessible du modèle que je défends se trouve
+par exemple dans  l'article " L'antimatière tombe-telle vers le haut paru
+dans " Pour la Science ", avril 2019, qui me semble assez facile à
+lire, même s'il comporte quelques approximations journalistiques
+que je n'ai pas réussi à contourner face à un journaliste plus
+tétu que moi.
+
+Plus développé, le long chapitre que je consacre au sujet dans
+mon ouvrage " L'insoutenable gravité de l'univers ", paru en mars 2018
+aux Editions du Pommier, mais je ne veux pas t'imposer cela.
+Et plus spécialisé mais je l'espère encore relativement accessible,
+un article de revue sur le sujet " Gravité et antimatière " que j'ai réalisé
+en mars 2018 avec Giovanni Manfredi  lors de la conférence LEAP-2018 (joint).
+
+Actuellement, nous sommes en train de réaliser des simulations
+nettement plus réalistes que précédemment avec une extension du
+code Ramses pour des espèces de masse positive et de masse négative.
+Sur cette notion de " masse négative ", faute d'une meilleure expression,
+il est curieux de constater qu'il n'existe pas de limite
+newtonienne, et cela m'me si on utilise trois types de masse avec
+les masses inertielle, gravitationnelle active et gravitationnelle passive.
+
+La tentation est alors de dire que le système étudié dans Dirac-Milne est
+impossible et il y avait un théorème en ce sens. Cependant, le système
+que l'on étudie existe dans la Nature, c'est le système électron-trou
+d'un semi-conducteur, et je crois que Paul Dirac ne l'aurait pas renié.
+Donc un théorème d'impossibilité qui exclut un système physique existant
+doit avoir une hypothèse trop contraignante et c'est ce que nous avons
+montré dans un long article de Physical Review D en 2018 avec Giovanni
+Manfredi et ses collaborateurs, en même temps que nous montrions les
+simulations obtenues dans ce cas. Cet article se trouve aisément sur arXiv :
+https://arxiv.org/pdf/1804.03067
+mais il est très long et j'imagine pas toujours aisé é lire pour un
+non-spécialiste.
+
+Bien amicalement, en te souhaitant bonne lecture, avant
+d'éventuelles questions ou commentaires,
+Gabriel
+
+=====================
+
+Gabriel CHARDIN 
+
+Laboratoire Astroparticules et Cosmologie
+10, rue Alice Domon et Léonie Duquet
+75013 Paris - France
+email : gabriel.chardin@cnrs.fr
+téléphone : +33-1 57 27 70 32
+portable : +33-6 37 57 10 88
+
+https://docs.google.com/document/d/1J0m-jG8PwtSir8tlRDPDsKNRhy2pT1AWlBsPMHiZTa8/edit#heading=h.23nr61hlwbxh

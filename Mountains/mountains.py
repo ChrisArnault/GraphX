@@ -26,6 +26,12 @@ def cell_id(cells, _x, _y):
     return _col + cells * _row
 
 
+def cell_id_from_rc(cells, _col, _row):
+    """ compute a cell id from a x, y coordinate """
+
+    return (_col % cells) + cells * (_row % cells)
+
+
 def col_from_cell_id(cells, _cell_id):
     """ compute the x column from the cell_id """
     return int(_cell_id % cells)
@@ -86,93 +92,6 @@ def neighbour(cells, cell1, cell2):
     return False
 
 
-class ObjectConnector(mountain_cells.CellIterator):
-    def __init__(self, dist_max, obj):
-        mountain_space.CellIterator.__init__(self)
-        self.dist_max = dist_max
-        self.object = obj
-        self.cell0 = obj.cell_id
-        self.cell_column0 = 0
-        self.cell_row0 = 0
-        self.cell = self.cell0
-        self.cell_column = 0
-        self.cell_row = 0
-        self.step = 0
-        self.largest_distance = 0
-
-    def locate_cell(self):
-        self.cell_column = int(self.cell_column0 + self.column)
-        self.cell_row = int(self.cell_row0 + self.row)
-
-        column = self.cell_column % cell_cells
-        row = self.cell_row % cell_cells
-
-        self.cell = column + cell_cells * row
-
-    def distance(self):
-        cell_dist = np.sqrt(np.power(self.cell_column - self.cell_column0, 2) +
-                            np.power(self.cell_row - self.cell_row0, 2))
-        # dist = cell_dist * cell_width / space_cells
-        dist = cell_dist * cell_width
-        return dist
-
-    def connect(self):
-        if self.cell not in Objects:
-            # print("connect> current cell not in Objects", self.cell)
-            return
-
-        objects_in_cell = Objects[self.cell]
-        # print("look for all objects in cell", self.cell, len(objects_in_cell))
-        for _o in objects_in_cell:
-            if self.object.id == _o.id:
-                continue
-            if self.object.dist(_o) > distance_max:
-                print("connect> current object", self.object.id, "not neighbour of", _o.id)
-                continue
-            print("connect o=", self.object.id, self.object.x, self.object.y, "to=", _o.id, _o.x, _o.y)
-            edgex = (self.object.x, _o.x)
-            edgey = (self.object.y, _o.y)
-            self.axe.plot(edgex, edgey, "r")
-
-            self.object.connect(_o)
-
-    def initialize(self):
-        self.cell_column0 = col_from_cell_id(cell_cells, self.cell0)
-        self.cell_row0 = row_from_cell_id(cell_cells, self.cell0)
-        self.locate_cell()
-        self.largest_distance = self.distance()
-        self.step = 0
-        self.connect()
-
-        """
-        print("=============================init cell=", self.cell,
-              "x=", self.cell_column, "y=", self.cell_row,
-              "step=", self.step)
-        """
-
-
-    def iterate(self):
-        self.step += 1
-        self.locate_cell()
-        dist = self.distance()
-        self.largest_distance = max(dist, self.largest_distance)
-        self.connect()
-
-        print("iterate cell=", self.cell,
-              "cell col=", self.cell_column, "cell row=", self.cell_row,
-              "col=", self.column, "row=", self.row, "dist=", dist, self.largest_distance)
-
-    def test_stop(self):
-        self.locate_cell()
-        # print("===== test stop cell=", self.cell, "x=", self.cell_column, "y=", self.cell_row,
-        # "step=", self.step, "largest dist=", self.largest_distance)
-        return self.largest_distance > (2 * self.dist_max)
-
-    def run(self, axe):
-        self.axe = axe
-        mountain_space.CellIterator.run(self)
-
-
 lines = []
 
 
@@ -184,18 +103,123 @@ def show_cell(cells, col, row):
     x = (col % cells) * w
     y = (row % cells) * w
     # print('col=', self.column, 'row=', self.row, 'lcol=', self.local_col, 'lrow=', self.local_row)
-    # a = plt.plot((x, x+w), (y, y+w), 'r')
-    # b = plt.plot((x, x+w), (y+w, y), 'r')
 
-    a = plt.scatter(x, y, color='r', s=40)
+    epsilon = w/20.
+    a = plt.plot((x+epsilon, x+w-epsilon, x+w-epsilon, x+epsilon, x+epsilon),
+                 (y+epsilon, y+epsilon, y+w-epsilon, y+w-epsilon, y+epsilon), 'r')
 
-    plt.pause(1)
+    plt.pause(0.0001)
 
     lines.append(a)
 
 
-class MyIterator(mountain_cells.CellIterator):
+def erase_cells():
+    global lines
+    for line in lines:
+        for s in line:
+            s.remove()
+    lines = []
+
+def draw_connector(x1, y1, x2, y2, case):
+    X = x2
+    Y = y2
+    if case == 0:
+        pass
+    elif case == 1:
+        X += 1
+    elif case == 2:
+        X += 1
+        Y += 1
+    elif case == 3:
+        Y += 1
+    elif case == 4:
+        X -= 1
+        Y += 1
+    elif case == 5:
+        X -= 1
+    elif case == 6:
+        X -= 1
+        Y -= 1
+    elif case == 7:
+        Y -= 1
+    elif case == 8:
+        X += 1
+        Y -= 1
+
+    a = (y1 - Y) / (x1 - X)
+    b = y1 - (a * x1)
+
+    if case == 0:
+        plt.plot((x1, x2), (y1, y2), 'g')
+    elif case == 1:
+        xc = 1
+        yc = a*xc + b
+        plt.plot((x1, 1), (y1, yc), 'g')
+        plt.plot((0, x2), (yc, y2), 'g')
+    elif case == 2:
+        xc = 1
+        yc = a*xc + b
+        if yc >= 1 or yc < 0:
+            yc = 1
+            xc = (yc - b)/a
+            plt.plot((x1, xc), (y1, 1), 'g')
+            plt.plot((xc, x2), (0, y2), 'g')
+        else:
+            plt.plot((x1, 1), (y1, yc), 'g')
+            plt.plot((0, x2), (yc, y2), 'g')
+    elif case == 3:
+        yc = 1
+        xc = (yc - b)/a
+        plt.plot((x1, xc), (y1, 1), 'g')
+        plt.plot((xc, x2), (0, y2), 'g')
+    elif case == 4:
+        xc = 0
+        yc = a*xc + b
+        if yc >= 1 or yc < 0:
+            yc = 1
+            xc = (yc - b)/a
+            plt.plot((x1, xc), (y1, 1), 'g')
+            plt.plot((xc, x2), (0, y2), 'g')
+        else:
+            plt.plot((x1, 0), (y1, yc), 'g')
+            plt.plot((1, x2), (yc, y2), 'g')
+    elif case == 5:
+        xc = 0
+        yc = a*xc + b
+        plt.plot((x1, 0), (y1, yc), 'g')
+        plt.plot((1, x2), (yc, y2), 'g')
+    elif case == 6:
+        xc = 0
+        yc = a*xc + b
+        if yc >= 1 or yc < 0:
+            yc = 0
+            xc = (yc - b)/a
+            plt.plot((x1, xc), (y1, 0), 'g')
+            plt.plot((xc, x2), (1, y2), 'g')
+        else:
+            plt.plot((x1, 0), (y1, yc), 'g')
+            plt.plot((1, x2), (yc, y2), 'g')
+    elif case == 7:
+        yc = 0
+        xc = (yc - b)/a
+        plt.plot((x1, xc), (y1, 0), 'g')
+        plt.plot((xc, x2), (1, y2), 'g')
+    elif case == 8:
+        xc = 1
+        yc = a*xc + b
+        if yc >= 1 or yc < 0:
+            yc = 0
+            xc = (yc - b)/a
+            plt.plot((x1, xc), (y1, 0), 'g')
+            plt.plot((xc, x2), (1, y2), 'g')
+        else:
+            plt.plot((x1, 1), (y1, yc), 'g')
+            plt.plot((0, x2), (yc, y2), 'g')
+
+
+class ObjectConnector(mountain_cells.CellIterator):
     def __init__(self, cells, obj, limit):
+        # print("==================================================================================")
         mountain_cells.CellIterator.__init__(self)
         self.cells = cells
         self.cell_width = 1.0/self.cells
@@ -213,10 +237,7 @@ class MyIterator(mountain_cells.CellIterator):
         self.local_col = self.start_col
         self.local_row = self.start_row
 
-        global lines
-        for line in lines:
-            line.remove()
-        lines = []
+        erase_cells()
 
     def dist(self):
         return np.sqrt(np.power((self.local_col - self.start_col) * self.cell_width, 2) +
@@ -228,27 +249,26 @@ class MyIterator(mountain_cells.CellIterator):
             return
 
         objects_in_cell = Objects[self.cell_id]
-        print("look for all objects in cell", self.cell_id, "len=", len(objects_in_cell))
-        plt.pause(5)
+        # print("look for all objects in cell", self.cell_id, "len=", len(objects_in_cell))
+        # plt.pause(5)
         for _o in objects_in_cell:
             if self.object.id == _o.id:
                 continue
-            a = plt.scatter(self.object.x, self.object.y, color='y', s=40)
-            b = plt.scatter(_o.x, _o.y, color='b', s=40)
-            d = self.object.dist(_o)
+            # a = plt.scatter(self.object.x, self.object.y, color='y', s=40)
+            # b = plt.scatter(_o.x, _o.y, color='b', s=40)
+            d, indices = self.object.dist(_o)
             if d > self.limit:
-                print("connect> current object", self.object.id, "not neighbour of", _o.id, "d=", d)
-                plt.pause(5)
-                a.remove()
-                b.remove()
+                # print("connect> current object", self.object.id, "not neighbour of", _o.id, "d=", d, "indices=", indices)
+                # plt.pause(1)
+                # a.remove()
+                # b.remove()
                 continue
-            print("connect o=", self.object.id, self.object.x, self.object.y, "to=", _o.id, _o.x, _o.y, "d=", d)
-            edgex = (self.object.x, _o.x)
-            edgey = (self.object.y, _o.y)
-            plt.plot(edgex, edgey, "g")
-            plt.pause(10)
-            a.remove()
-            b.remove()
+            # print("connect o=", self.object.id, self.object.x, self.object.y, "to=", _o.id, _o.x, _o.y, "d=", d, "indices=", indices)
+            case = indices[0]
+            draw_connector(self.object.x, self.object.y, _o.x, _o.y, case)
+            # plt.pause(5)
+            # a.remove()
+            # b.remove()
 
             self.object.connect(_o)
 
@@ -256,25 +276,22 @@ class MyIterator(mountain_cells.CellIterator):
         self.local_col = self.start_col
         self.local_row = self.start_row
         self.max_dist = 0
-        self.cell_id = (self.local_row % self.cells) * self.cells + (self.local_col % self.cells)
-
+        self.cell_id = cell_id_from_rc(self.cells, self.local_col, self.local_row)
+        # show_cell(self.cells, self.local_col, self.local_row)
         self.connect()
-
-        show_cell(self.cells, self.local_col, self.local_row)
 
     def iterate(self):
         self.local_col = self.column + self.start_col
         self.local_row = self.row + self.start_row
-        self.cell_id = (self.local_row % self.cells) * self.cells + (self.local_col % self.cells)
+        self.cell_id = cell_id_from_rc(self.cells, self.local_col, self.local_row)
         self.max_dist = max(self.max_dist, self.dist())
-
+        # show_cell(self.cells, self.local_col, self.local_row)
         self.connect()
 
-        show_cell(self.cells, self.local_col, self.local_row)
-        print("iterate> r=", self.radius, "col=", self.column, "row=", self.row, "d=", self.max_dist)
+        # print("iterate> r=", self.radius, "col=", self.column, "row=", self.row, "d=", self.max_dist)
 
     def test_stop(self):
-        print("mytest_stop> r=", self.radius, "col=", self.column, "row=", self.row, "d=", self.max_dist)
+        # print("mytest_stop> r=", self.radius, "col=", self.column, "row=", self.row, "d=", self.max_dist)
         return self.max_dist > self.limit
 
 
@@ -297,13 +314,6 @@ class Object(object):
         # plt.pause(5)
         # a.remove()
 
-        """
-        global lines
-        for line in lines:
-            line.remove()
-        lines = []
-        """
-
         self.declare()
         self.edges = []
 
@@ -319,12 +329,25 @@ class Object(object):
         Objects[self.cell_id] = objects_in_cell
 
     def dist(self, other):
-        a = np.sqrt(np.power(self.x - other.x, 2) + np.power(self.y - other.y, 2))
-        b = np.sqrt(np.power(self.x - other.x + 1, 2) + np.power(self.y - other.y, 2))
-        c = np.sqrt(np.power(self.x - other.x - 1, 2) + np.power(self.y - other.y, 2))
-        d = np.sqrt(np.power(self.x - other.x, 2) + np.power(self.y - other.y + 1, 2))
-        e = np.sqrt(np.power(self.x - other.x, 2) + np.power(self.y - other.y - 1, 2))
-        return min(a, b, c, d, e)
+        x1 = self.x
+        y1 = self.y
+        x2 = other.x
+        y2 = other.y
+
+        d = lambda _x1, _x2, _y1, _y2 : np.sqrt(np.power(_x1 - _x2, 2) + np.power(_y1 - _y2, 2))
+
+        cases = np.array([d(x1, x2,     y1, y2),
+                          d(x1, x2 + 1, y1, y2),
+                          d(x1, x2 + 1, y1, y2 + 1),
+                          d(x1, x2,     y1, y2 + 1),
+                          d(x1, x2 - 1, y1, y2 + 1),
+                          d(x1, x2 - 1, y1, y2),
+                          d(x1, x2 - 1, y1, y2 - 1),
+                          d(x1, x2,     y1, y2 - 1),
+                          d(x1, x2 + 1, y1, y2 - 1) ])
+        dist_min = min(cases)
+        indices = [i for i, v in enumerate(cases) if v == dist_min]
+        return dist_min, indices
 
     def connect(self, other):
         self.edges.append(other)
@@ -378,19 +401,21 @@ axe1.plot_surface(mountain_space.x_vector(0, space_grid_size),
 # =========================================================================================
 
 # now to handle objects, we devide the space in cells
-cells = 2 * 5 + 1                             # division of space in cells
+cells = 2 * 10 + 1                             # division of space in cells
 cell_width = 1.0 / cells
-limit = 0.2
+limit = 0.05
 
 ox = []
 oy = []
 
 axe2 = plt.subplot2grid((1, 1), (0, 0))
 
+"""
 for row in range(cells + 1):
     plt.plot((0, 1), (row * cell_width, row * cell_width), 'g')
     for col in range(cells + 1):
         plt.plot((col * cell_width, col * cell_width), (0, 1), 'g')
+"""
 
 n = 0
 for i in range(100000):
@@ -406,36 +431,12 @@ for i in range(100000):
 
     axe2.scatter(ox, oy, color='k', s=1)
 
-    a = plt.scatter(x, y, color='y', s=40)
-
     o = Object(cells=cells, object_id=n, object_x=x, object_y=y)
-    it = MyIterator(cells=cells, obj=o, limit=limit)
+    it = ObjectConnector(cells=cells, obj=o, limit=limit)
     it.run()
 
-    a.remove()
+    plt.pause(0.0001)
 
     n += 1
-
-    """
-    we now look for neighbour objects:
-    - we only consider neighbour cells up to a max cell distance (in cell measure)
-    - and we connect neighbour objects up to a max space distance (in space measure)
-    """
-
-    """
-    connector = ObjectConnector(dist_max=distance_max, obj=o)
-    connector.run(axe2)
-
-    if (n % 10) == 0:
-
-        for row in range(cells):
-            axe2.plot((0, 1), (row/cells, row/cells), "g")
-            for col in range(cells):
-                axe2.plot((col / cells, col / cells), (0, 1), "g")
-
-        print("generating", n)
-        axe2.scatter(ox, oy, color='k', s=1)
-        plt.pause(0.1)
-    """
 
 plt.show()
