@@ -116,8 +116,8 @@ Results
 <td>0h1m22.462s</td>
 <td>10000</td>
 <td>500</td>
-<td></td>
-<td>47h</td>
+<td>1470306</td>
+<td>46h2h52.120s</td>
 <td></td>
 <td></td>
 </tr>
