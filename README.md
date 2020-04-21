@@ -117,7 +117,7 @@ Results
 <td>10000</td>
 <td>500</td>
 <td></td>
-<td></td>
+<td>47h</td>
 <td></td>
 <td></td>
 </tr>

@@ -9,6 +9,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 
+import mountain_cells
+
 
 def gaussian_model(matrix, maxvalue, meanvalue, sigma):
     """
@@ -27,55 +29,7 @@ x_vector = lambda grid_column, grid_size: (np.arange(0, grid_size, 1, float) / g
 y_vector = lambda grid_row, grid_size: (np.arange(0, grid_size, 1, float) / grid_size) + grid_row
 
 
-class CellIterator(object):
-    def __init__(self):
-        self.radius = 0
-        self.row = 0
-        self.column = 0
-
-    def initialize(self):
-        print("initialize>", self.radius)
-
-    def iterate(self):
-        print("iterate>", self.radius)
-
-    def test_stop(self):
-        print("test_stop>", self.radius)
-        return True
-
-    def run(self):
-        self.radius = 0
-        while True:
-            # print("radius=", radius)
-            if self.radius == 0:
-                self.initialize()
-            else:
-                # bottom line
-                self.row = -self.radius
-                for self.column in range(-self.radius, self.radius + 1):
-                    self.iterate()
-
-                self.column = -self.radius
-                for self.row in range(-self.radius + 1, self.radius):
-                    self.iterate()
-
-                self.column = self.radius
-                for self.row in range(-self.radius + 1, self.radius):
-                    self.iterate()
-
-                self.row = self.radius
-                for self.column in range(-self.radius, self.radius + 1):
-                    self.iterate()
-
-                if self.test_stop():
-                    break
-
-            self.radius += 1
-
-        return self.radius
-
-
-class MountainBuilder(CellIterator):
+class MountainBuilder(mountain_cells.CellIterator):
     def __init__(self, x_peak, y_peak, height, width, grid_size):
         """
         install a mountains in a circular 2D space. [0, 1[ x [0, 1[
@@ -90,7 +44,7 @@ class MountainBuilder(CellIterator):
         :return: the sum of the grid, the filled space grid
         """
 
-        CellIterator.__init__(self)
+        mountain_cells.CellIterator.__init__(self)
 
         self.x_peak = x_peak
         self.y_peak = y_peak
@@ -120,7 +74,7 @@ class MountainBuilder(CellIterator):
         return ok
 
     def run(self):
-        CellIterator.run(self)
+        mountain_cells.CellIterator.run(self)
         return self.central_grid
 
     def create_grid(self, g_row, g_column):
@@ -182,4 +136,28 @@ def build_space(fields, space_grid_size):
     space *= space
 
     return space
+
+
+def interpolate(from_space, _x, _y):
+    """
+    Compute the field @ x, y by interpolating the quantized field in space
+    """
+    g = from_space.shape[0]
+    x1 = int(_x * g)
+    y1 = int(_y * g)
+    xx2 = (x1 + 1) % g
+    yy2 = (y1 + 1) % g
+
+    z1 = from_space[y1,  x1]
+    z2 = from_space[y1,  xx2]
+    z3 = from_space[yy2, x1]
+
+    b = z2 - z1
+    a = z3 - z1
+    c = z1 - a * x1 - b * y1
+
+    _z = (a * _x * g + b * _y * g + c)
+
+    return _z
+
 
