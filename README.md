@@ -118,8 +118,8 @@ Results
 <td>500</td>
 <td>1470306</td>
 <td>46h2h52.120s</td>
-<td></td>
-<td></td>
+<td>0h0m19.660s</td>
+<td>0h0m49.222s</td>
 </tr>
 </table>
 
