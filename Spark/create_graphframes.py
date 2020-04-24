@@ -285,7 +285,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches, ve
 
                         if df is None:
                             df = edges
-                        else
+                        else:
                             df = df.union(edges)
 
                         """
