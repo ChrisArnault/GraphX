@@ -96,7 +96,7 @@ class MountainBuilder(mountain_cells.CellIterator):
         return new_grid, np.sum(new_grid)
 
 
-def build_space(fields, space_grid_size):
+def build_space(fields, space_grid_size, width_factor=0.5, height_factor=0.5):
 
     """
     Construction of the cyclic spherical space, continuous left-riht & top-bottom
@@ -114,8 +114,8 @@ def build_space(fields, space_grid_size):
 
         builder = MountainBuilder(x_peak=x0,
                                   y_peak=y0,
-                                  height=np.random.random()/2,
-                                  width=np.random.random()/2,
+                                  height=np.random.random()*height_factor,
+                                  width=np.random.random()*width_factor,
                                   grid_size=space_grid_size)
 
         z = builder.run()

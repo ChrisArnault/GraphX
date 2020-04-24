@@ -315,8 +315,14 @@ class Object(object):
         indices = [i for i, v in enumerate(cases) if v == dist_min]
         return dist_min, indices
 
-    def connect(self, other: "Object") -> None:
-        self.edges.append(other)
+    def connect(self, other: "Object", _case: int) -> None:
+        self.edges.append((other, _case))
+
+    def draw_connections(self):
+        for edge in self.edges:
+            _o = edge[0]
+            _case = edge[1]
+            draw_connector(self.x, self.y, _o.x, _o.y, _case)
 
 
 class ObjectConnector(mountain_cells.CellIterator):
@@ -375,12 +381,12 @@ class ObjectConnector(mountain_cells.CellIterator):
             # print("connect o=", self.object.id, self.object.x, self.object.y,
             # "to=", _o.id, _o.x, _o.y, "d=", d, "indices=", indices)
             case = indices[0]
-            draw_connector(self.object.x, self.object.y, _o.x, _o.y, case)
+            # draw_connector(self.object.x, self.object.y, _o.x, _o.y, case)
             # plt.pause(5)
             # a.remove()
             # b.remove()
 
-            self.object.connect(_o)
+            self.object.connect(_o, case)
 
     def initialize(self) -> None:
         self.local_col = self.start_col
@@ -408,61 +414,65 @@ class ObjectConnector(mountain_cells.CellIterator):
 Objects = dict()
 text = None
 
+class DrawSpace(object):
+    def __init__(self, fig, _cells):
+        self.cells = _cells
+        self.text = None
+        fig.canvas.mpl_connect('motion_notify_event', self.onclick)
+        fig.canvas.mpl_connect('button_press_event', self.onclick)
 
-def onclick(event):
-    global text
+    def onclick(self, event):
+        if self.text is not None:
+            self.text.remove()
+            self.text = None
 
-    if text is not None:
-        text.remove()
-        text = None
-
-    # print("Click occured in axe at x={} y={}".format(event.xdata, event.ydata))
-    if event.xdata is None:
-        return
-    _x: float = event.xdata
-    _y: float = event.ydata
-    if _x < 0 and _x > 1:
-        if _y < 0 and _y > 1:
+        # print("Click occured in axe at x={} y={}".format(event.xdata, event.ydata))
+        if event.xdata is None:
             return
-    col = int(_x * cells)
-    row = int(_y * cells)
-    _cell_id = row * cells + col
-    # print("cell=", cell_id, "col=", col, "row=", row)
+        _x: float = event.xdata
+        _y: float = event.ydata
+        if _x < 0 and _x > 1:
+            if _y < 0 and _y > 1:
+                return
+        col = int(_x * self.cells)
+        row = int(_y * self.cells)
+        _cell_id = row * self.cells + col
+        # print("cell=", cell_id, "col=", col, "row=", row)
 
-    if _cell_id not in Objects:
-        # print("connect> current cell not in Objects", self.cell)
-        return
+        if _cell_id not in Objects:
+            # print("connect> current cell not in Objects", self.cell)
+            return
 
-    objects_in_cell = Objects[_cell_id]
-    for _o in objects_in_cell:
-        _ox = _o.x
-        _oy = _o.y
-        if abs(_ox - _x) < 0.01 and (_oy - _y) < 0.01:
-            text = plt.text(_x, _y, "{}|{}|{}".format(_o.id, col, row), fontsize=14)
+        objects_in_cell = Objects[_cell_id]
+        for _o in objects_in_cell:
+            _ox = _o.x
+            _oy = _o.y
+            if abs(_ox - _x) < 0.01 and (_oy - _y) < 0.01:
+                self.text = plt.text(_x, _y, "{}|{}|{}".format(_o.id, col, row), fontsize=14)
 
 # ==========================================================================================
+# Building the space with the set of repulsive fields
+#
 
-
-space = mountain_space.build_space(fields=40, space_grid_size=100)
+space = mountain_space.build_space(fields=150, space_grid_size=200, width_factor=0.12)
 space_grid_size = space.shape[0]
 
 fig, axe1 = plt.subplots(1, 1, subplot_kw={'projection': '3d', 'aspect': 'equal'})
-# ax.plot_wireframe(x, y, space, color='r')
-# ax.scatter(xi, yi, zi, s=1, c='r', zorder=1)
-
-fig.canvas.mpl_connect('motion_notify_event', onclick)
-fig.canvas.mpl_connect('button_press_event', onclick)
 
 axe1.plot_surface(mountain_space.x_vector(0, space_grid_size),
                   mountain_space.y_vector(0, space_grid_size)[:, np.newaxis], space, color='r')
 
+plt.show()
+
 # =========================================================================================
 
 # now to handle objects, we devide the space in cells
-# cells = 2 * 30 + 1                             # division of space in cells
-cells = 2 * 3 + 1                             # division of space in cells
-# limit = 0.02
-limit = 0.2
+cells = 2 * 100 + 1                             # division of space in cells
+# cells = 2 * 3 + 1                             # division of space in cells
+limit = 0.02
+# limit = 0.2
+
+# ds = DrawSpace(fig=fig, _cells=cells)
 
 cell_width = 1.0 / cells
 
@@ -502,6 +512,8 @@ for object_id in range(100000):
     o = Object(_cells=cells, _object_id=object_id, object_x=x, object_y=y)
     it = ObjectConnector(_cells=cells, obj=o, _limit=limit)
     it.run()
+
+    o.draw_connections()
 
     plt.pause(0.0001)
 

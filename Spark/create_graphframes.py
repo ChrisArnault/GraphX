@@ -195,6 +195,42 @@ def neighbour(g, c1, c2):
     return t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9
 
 
+def CellIterator(start_row, start_col, max_radius, _cells):
+    radius = 0
+    while radius < max_radius:
+        if radius == 0:
+            lrow = start_row
+            lcol = start_col
+            if lrow >= 0 and lrow < _cells and lcol >= 0 and lcol < _cells:
+                yield radius, lrow, lcol
+        else:
+            row = -radius
+            for column in range(- radius, radius + 1):
+                lrow = start_row + row
+                lcol = start_col + column
+                if lrow >= 0 and lrow < _cells and lcol >= 0 and lcol < _cells:
+                    yield radius, lrow, lcol
+            column = radius
+            for row in range(-radius + 1, radius + 1):
+                lrow = start_row + row
+                lcol = start_col + column
+                if lrow >= 0 and lrow < _cells and lcol >= 0 and lcol < _cells:
+                    yield radius, lrow, lcol
+            row = radius
+            for column in range(radius - 1, -radius - 1, -1):
+                lrow = start_row + row
+                lcol = start_col + column
+                if lrow >= 0 and lrow < _cells and lcol >= 0 and lcol < _cells:
+                    yield radius, lrow, lcol
+            column = -radius
+            for row in range(radius - 1, -radius, -1):
+                lrow = start_row + row
+                lcol = start_col + column
+                if lrow >= 0 and lrow < _cells and lcol >= 0 and lcol < _cells:
+                    yield radius, lrow, lcol
+        radius += 1
+
+
 def batch_create(directory, file, build_values, columns, total_rows, batches, vertices=None, grid_size=None):
     os.system("hdfs dfs -rm -r -f {}/{}".format(directory, file))
 
@@ -218,26 +254,51 @@ def batch_create(directory, file, build_values, columns, total_rows, batches, ve
             df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
             local_stepper.show_step("create dataframe")
         else:
-            src = vertices.alias("src").\
-                withColumnRenamed("id", "src_id").\
-                withColumnRenamed("cell", "src_cell")
-            dst = vertices.alias("dst").\
-                withColumnRenamed("id", "dst_id").\
-                withColumnRenamed("cell", "dst_cell")
 
-            # "src_id", "x", "y", "src_cell"
-            # "dst_id", "x", "y", "dst_cell"
-            # "eid", "src", "dst"
+            df = None
+            for row0 in range(grid_size):
+                for col0 in range(grid_size):
+                    cell0 = col0 + grid_size * row0
 
-            df = sqlContext.createDataFrame(build_values(row, row + rows), columns).\
-                repartition(1000, "eid")
-            
-            df = df.join(src, (src.src_id == df.src), how="inner"). \
-                    join(dst, (dst.dst_id == df.dst) &
-                              (dst.dst_id != src.src_id) &
-                               neighbour(grid_size, dst.dst_cell, src.src_cell),
-                         how="inner").\
-                    select("eid", "src", "dst")
+                    src = vertices.filter(vertices.cell == cell0).alias("src").\
+                        withColumnRenamed("id", "src_id").\
+                        withColumnRenamed("cell", "src_cell")
+
+                    if src.count() == 0:
+                        continue
+
+                    for r, row, col in CellIterator(row0, col0, 2, grid_size):
+                        cell = col + grid_size * row
+                        dst = vertices.filter(vertices.cell == cell).\
+                            withColumnRenamed("id", "dst_id"). \
+                            withColumnRenamed("cell", "dst_cell")
+
+                        if src.count() == 0:
+                            continue
+
+                        # "src_id", "x", "y", "src_cell"
+                        # "dst_id", "x", "y", "dst_cell"
+                        # "eid", "src", "dst"
+
+                        edges = src.join(dst, (dst.dst_id != src.src_id), how="inner").\
+                                select("eid", "src", "dst")
+
+                        if df is None:
+                            df = edges
+                        else
+                            df = df.union(edges)
+
+                        """
+                        df = sqlContext.createDataFrame(build_values(row, row + rows), columns).\
+                            repartition(1000, "eid")
+                        
+                        df = df.join(src, (src.src_id == df.src), how="inner"). \
+                                join(dst, (dst.dst_id == df.dst) &
+                                          (dst.dst_id != src.src_id) &
+                                           neighbour(grid_size, dst.dst_cell, src.src_cell),
+                                     how="inner").\
+                                select("eid", "src", "dst")
+                        """
 
             local_stepper.show_step("create dataframe and join")
 
