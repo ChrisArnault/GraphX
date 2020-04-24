@@ -170,7 +170,7 @@ c = z.collect()
 d = z.flatMap(lambda x : x).flatMap(lambda x : x)
 ddf = sqlContext.createDataFrame(d, ['src_id', 'src_cell', 'dst_cell'])
 joined = ddf.join(dst, dst.dst_cell == ddf.dst_cell).select('src_id', 'dst_id')
-
+joined = joined.withColumn('id', monotonically_increasing_id())
 
 for ic in c:
     if len(ic) == 0:

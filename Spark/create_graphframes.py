@@ -16,6 +16,7 @@ if has_spark:
     from pyspark.sql.functions import *
     from pyspark.sql.types import *
     from pyspark.sql import SQLContext
+    from pyspark.sql.functions import monotonically_increasing_id
     import graphframes
 
 if has_spark:
@@ -277,7 +278,10 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
             z = y.map(lambda x: f2(x))
             d = z.flatMap(lambda x: x).flatMap(lambda x: x)
             ddf = sqlContext.createDataFrame(d, ['src_id', 'src_cell', 'dst_cell'])
-            df = ddf.join(dst, dst.dst_cell == ddf.dst_cell).select('src_id', 'dst_id')
+            df = ddf.join(dst, dst.dst_cell == ddf.dst_cell).select('src_id', 'dst_id').\
+                withColumnRenamed("src_id", "src"). \
+                withColumnRenamed("dst_id", "dst"). \
+                withColumn('id', monotonically_increasing_id())
 
             local_stepper.show_step("create dataframe and join")
 
