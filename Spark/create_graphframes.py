@@ -272,10 +272,11 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                         withColumnRenamed("id", "src_id").\
                         withColumnRenamed("cell", "src_cell")
 
+                    """
                     src_count = src.count()
-
                     if src_count == 0:
                         continue
+                    """
 
                     # src.show()
 
@@ -290,10 +291,11 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                             withColumnRenamed("cell", "dst_cell"). \
                             sample(False, fraction)
 
+                        """
                         dst_count = dst.count()
-
                         if dst_count == 0:
                             continue
+                        """
 
                         # dst.show()
 
@@ -306,10 +308,11 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                             withColumnRenamed("src_id", "src"). \
                             withColumnRenamed("dst_id", "dst")
 
+                        """
                         edge_count = edges.count()
-
                         if edge_count == 0:
                             continue
+                        """
 
                         # edges.show()
 
@@ -330,6 +333,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                                      how="inner").\
                                 select("eid", "src", "dst")
                         """
+                    local_stepper.show_step("create dataframe and join")
 
             local_stepper.show_step("create dataframe and join")
 
