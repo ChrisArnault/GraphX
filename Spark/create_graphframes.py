@@ -196,7 +196,7 @@ def neighbour(g, c1, c2):
     return t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9
 
 
-def CellIterator(start_row, start_col, max_radius, _cells):
+def cell_iterator(start_row, start_col, max_radius, _cells):
     radius = 0
     while radius < max_radius:
         if radius == 0:
@@ -261,7 +261,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
             def func(p_list):
                 yield p_list
 
-            y = vertices.rdd.mapPartitions(func)
+            vertices_rdd = vertices.rdd.mapPartitions(func)
 
             degree = np.random.randint(0, conf.degree_max)
             fraction = float(degree) / conf.vertices
@@ -272,14 +272,24 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                 sample(False, fraction)
 
             #                cell  row             col
+            # new columns to display row column instead of x, y
             f1 = lambda x: [(i[0], i[3], int(i[3] / grid_size), i[3] % grid_size) for i in x]
-            f2 = lambda x: [[(src, cell_src, row * grid_size + col) for r, row, col in CellIterator(row, col, 2, grid_size)] for
-                            src, cell_src, row, col in f1(x)]
-            z = y.map(lambda x: f2(x))
-            d = z.flatMap(lambda x: x).flatMap(lambda x: x)
-            ddf = sqlContext.createDataFrame(d, ['src_id', 'src_cell', 'dst_cell'])
 
-            df = ddf.join(dst, dst.dst_cell == ddf.dst_cell).select('src_id', 'dst_id'). \
+            # visit all neighbour cells
+            f2 = lambda x: [[(src, cell_src, _row * grid_size + _col) for r, _row, _col in cell_iterator(_row, _col, 2, grid_size)] for
+                            src, cell_src, _row, _col in f1(x)]
+
+            # RDD of full visit including neighbour cells
+            full_visit = vertices_rdd.map(lambda x: f2(x))
+
+            # flat visit of all neighbour cells
+            all_visited_cells = full_visit.flatMap(lambda x: x).flatMap(lambda x: x)
+
+            # make it a DF
+            all_edges = sqlContext.createDataFrame(all_visited_cells, ['src_id', 'src_cell', 'dst_cell'])
+
+            # join to get all edges from neighbour cells and format schema as needed by GraphFrames
+            df = all_edges.join(dst, dst.dst_cell == all_edges.dst_cell).select('src_id', 'dst_id'). \
                 withColumnRenamed("src_id", "src"). \
                 withColumnRenamed("dst_id", "dst"). \
                 withColumn('id', monotonically_increasing_id())
