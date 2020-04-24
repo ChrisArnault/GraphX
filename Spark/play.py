@@ -13,6 +13,7 @@ if has_spark:
     from pyspark.sql.functions import *
     from pyspark.sql.types import *
     from pyspark.sql import SQLContext
+    from pyspark.sql.functions import monotonically_increasing_id
 
     import graphframes
 
@@ -23,19 +24,24 @@ if has_spark:
     sqlContext = SQLContext(spark.sparkContext)
     spark.conf.set("spark.sql.crossJoin.enabled", True)
 
+def wait():
+    while True:
+        print("wait")
+        time.sleep(3)
+
 N = 1000
 D = 1000
-Grid = 10000
 partitions = 100
+cells = 10
+all_cells = cells*cells
 
 x = lambda : np.random.random()
 y = lambda : np.random.random()
-g = int(np.sqrt(Grid))
-cell = lambda x, y: int(x*g) + g * int(y*g)
+cell_id = lambda x, y: int(x*cells) + cells * int(y*cells)
 
 
 base_vertex_values = lambda : [(v, x(), y()) for v in range(N)]
-vertex_values = lambda : [(v[0], v[1], v[2], cell(v[1], v[2])) for v in base_vertex_values()]
+vertex_values = lambda : [(v[0], v[1], v[2], cell_id(v[1], v[2])) for v in base_vertex_values()]
 
 vertices = sqlContext.createDataFrame(vertex_values(), ["id", "x", "y", "cell"])
 n = vertices.rdd.getNumPartitions()
@@ -47,11 +53,12 @@ print("partitions=", n)
 
 vertices.show()
 
-Grid = g*g
-for c in range(Grid)
+"""
+for c in range(all_cells):
     count = vertices.filter(vertices.cell == c).count()
     if count > 0:
         print(c, count)
+"""
 
 def CellIterator(row0, col0, max_radius, cells):
     radius = 0
@@ -88,33 +95,52 @@ def CellIterator(row0, col0, max_radius, cells):
                     yield radius, lrow, lcol
         radius += 1
 
+"""
 for r, row, col in CellIterator(5, 8, 3, 8):
     print(r, row, col)
+"""
 
-cell_width = 1/g
-dist_max = 0.05
+cell_width = 1/cells
+dist_max = 0.1
 maxr = dist_max/cell_width
 
 total = 0
-for row0 in range(g):
-    for col0 in range(g):
-        cell0 = col0 + g * row0
+eid = 0
+df = None
+for row0 in range(cells):
+    for col0 in range(cells):
+        cell0 = col0 + cells * row0
         src = vertices.filter(vertices.cell == cell0).\
             withColumnRenamed("id", "src_id"). \
             withColumnRenamed("cell", "src_cell")
-        if src.count() > 0:
-            for r, row, col in CellIterator(row0, col0, maxr, g):
-                cell = col + g * row
-                dst = vertices.filter(vertices.cell == cell).\
-                    withColumnRenamed("id", "dst_id"). \
-                    withColumnRenamed("cell", "dst_cell")
-                count = 0
-                if dst.count() > 0:
-                    edges = src.join(dst, (dst.dst_id != src.src_id), how="inner")
-                    count = edges.count()
-                total += count
-                print("r0=", row0, "c0=", col0, "r=", row, "c=", col, "count=", count, "total=", total)
-print(total)
+        if src.count() == 0:
+            continue
+        # src.show()
+        for r, row, col in CellIterator(row0, col0, 2, cells):
+            cell = col + cells * row
+            degree = np.random.randint(0, D)
+            fraction = float(degree)/N
+            print("fraction=", fraction)
+            dst = vertices.filter(vertices.cell == cell).\
+                withColumnRenamed("id", "dst_id"). \
+                withColumnRenamed("cell", "dst_cell").\
+                sample(False, fraction)
+            count = 0
+            if dst.count() == 0:
+                continue
+            # dst.show()
+            edges = src.join(dst, (dst.dst_id != src.src_id), how="inner"). \
+                select('src_id', "dst_id").\
+                withColumnRenamed("src_id", "src").\
+                withColumnRenamed("dst_id", "dst")
+            if df is None:
+                df = edges
+            else:
+                df = df.union(edges)
+            count = edges.count()
+            total += count
+            print("r0=", row0, "c0=", col0, "r=", row, "c=", col, "count=", count, "total=", total)
+        df.show()
 
 def func(l):
     yield len(l)

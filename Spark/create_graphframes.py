@@ -231,7 +231,9 @@ def CellIterator(start_row, start_col, max_radius, _cells):
         radius += 1
 
 
-def batch_create(directory, file, build_values, columns, total_rows, batches, vertices=None, grid_size=None):
+def batch_create(directory, file, build_values, columns, total_rows, batches,
+                 vertices=None,
+                 grid_size=None):
     os.system("hdfs dfs -rm -r -f {}/{}".format(directory, file))
 
     print("batch_create> ", directory, file, "total_rows=", total_rows, "batches=", batches)
@@ -258,9 +260,9 @@ def batch_create(directory, file, build_values, columns, total_rows, batches, ve
             df = None
             for row0 in range(grid_size):
                 for col0 in range(grid_size):
-                    cell0 = col0 + grid_size * row0
+                    src_cell = col0 + grid_size * row0
 
-                    src = vertices.filter(vertices.cell == cell0).alias("src").\
+                    src = vertices.filter(vertices.cell == src_cell).alias("src").\
                         withColumnRenamed("id", "src_id").\
                         withColumnRenamed("cell", "src_cell")
 
@@ -268,29 +270,36 @@ def batch_create(directory, file, build_values, columns, total_rows, batches, ve
                         continue
 
                     for r, row, col in CellIterator(row0, col0, 2, grid_size):
-                        cell = col + grid_size * row
-                        dst = vertices.filter(vertices.cell == cell).\
-                            withColumnRenamed("id", "dst_id"). \
-                            withColumnRenamed("cell", "dst_cell")
+                        dst_cell = col + grid_size * row
 
-                        if src.count() == 0:
+                        degree = np.random.randint(0, conf.degree_max)
+                        fraction = float(degree) / total_rows
+                        print("faction=", fraction)
+
+                        dst = vertices.filter(vertices.cell == dst_cell). \
+                            withColumnRenamed("id", "dst_id"). \
+                            withColumnRenamed("cell", "dst_cell"). \
+                            sample(False, fraction)
+
+                        if dst.count() == 0:
                             continue
 
                         # "src_id", "x", "y", "src_cell"
                         # "dst_id", "x", "y", "dst_cell"
                         # "eid", "src", "dst"
 
-                        edges = src.join(dst, (dst.dst_id != src.src_id), how="inner").\
-                                select("eid", "src", "dst")
+                        edges = src.join(dst, (dst.dst_id != src.src_id), how="inner"). \
+                            select('src_id', "dst_id"). \
+                            withColumnRenamed("src_id", "src"). \
+                            withColumnRenamed("dst_id", "dst")
 
                         if df is None:
                             df = edges
                         else:
                             df = df.union(edges)
 
+
                         """
-                        df = sqlContext.createDataFrame(build_values(row, row + rows), columns).\
-                            repartition(1000, "eid")
                         
                         df = df.join(src, (src.src_id == df.src), how="inner"). \
                                 join(dst, (dst.dst_id == df.dst) &
