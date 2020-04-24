@@ -277,7 +277,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                     if src_count == 0:
                         continue
 
-                    src.show()
+                    # src.show()
 
                     for r, row, col in CellIterator(row0, col0, 2, grid_size):
                         dst_cell = col + grid_size * row
@@ -295,7 +295,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                         if dst_count == 0:
                             continue
 
-                        dst.show()
+                        # dst.show()
 
                         # "src_id", "x", "y", "src_cell"
                         # "dst_id", "x", "y", "dst_cell"
@@ -308,9 +308,12 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
 
                         edge_count = edges.count()
 
-                        edges.show()
+                        if edge_count == 0:
+                            continue
 
-                        print("src=", src_count, "dst=", dst_count, "edges=", edge_count)
+                        # edges.show()
+
+                        # print("src=", src_count, "dst=", dst_count, "edges=", edge_count)
 
                         if first:
                             first = False
