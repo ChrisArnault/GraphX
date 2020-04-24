@@ -263,7 +263,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
 
         else:
 
-            df = None
+            first = True
             for row0 in range(grid_size):
                 for col0 in range(grid_size):
                     src_cell = col0 + grid_size * row0
@@ -276,6 +276,8 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
 
                     if src_count == 0:
                         continue
+
+                    src.show()
 
                     for r, row, col in CellIterator(row0, col0, 2, grid_size):
                         dst_cell = col + grid_size * row
@@ -293,6 +295,8 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                         if dst_count == 0:
                             continue
 
+                        dst.show()
+
                         # "src_id", "x", "y", "src_cell"
                         # "dst_id", "x", "y", "dst_cell"
                         # "eid", "src", "dst"
@@ -304,18 +308,15 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
 
                         edge_count = edges.count()
 
+                        edges.show()
+
                         print("src=", src_count, "dst=", dst_count, "edges=", edge_count)
 
-                        if df is None:
-                            df = edges
-                            df.write.format("parquet").save(file_name)
+                        if first:
+                            first = False
+                            edges.write.format("parquet").save(file_name)
                         else:
-                            df = edges
-                            df.write.format("parquet").mode("append").save(file_name)
-
-                        df_count = df.count()
-                        print("df=", df_count)
-
+                            edges.write.format("parquet").mode("append").save(file_name)
 
                         """
                         
