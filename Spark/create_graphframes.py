@@ -255,6 +255,12 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
         if vertices is None:
             df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
             local_stepper.show_step("create dataframe")
+
+            if batch == 0:
+                df.write.format("parquet").save(file_name)
+            else:
+                df.write.format("parquet").mode("append").save(file_name)
+
         else:
 
             df = None
@@ -266,7 +272,9 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                         withColumnRenamed("id", "src_id").\
                         withColumnRenamed("cell", "src_cell")
 
-                    if src.count() == 0:
+                    src_count = src.count()
+
+                    if src_count == 0:
                         continue
 
                     for r, row, col in CellIterator(row0, col0, 2, grid_size):
@@ -274,14 +282,15 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
 
                         degree = np.random.randint(0, conf.degree_max)
                         fraction = float(degree) / total_rows
-                        print("faction=", fraction)
 
                         dst = vertices.filter(vertices.cell == dst_cell). \
                             withColumnRenamed("id", "dst_id"). \
                             withColumnRenamed("cell", "dst_cell"). \
                             sample(False, fraction)
 
-                        if dst.count() == 0:
+                        dst_count = dst.count()
+
+                        if dst_count == 0:
                             continue
 
                         # "src_id", "x", "y", "src_cell"
@@ -293,10 +302,19 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                             withColumnRenamed("src_id", "src"). \
                             withColumnRenamed("dst_id", "dst")
 
+                        edge_count = edges.count()
+
+                        print("src=", src_count, "dst=", dst_count, "edges=", edge_count)
+
                         if df is None:
                             df = edges
+                            df.write.format("parquet").save(file_name)
                         else:
-                            df = df.union(edges)
+                            df = edges
+                            df.write.format("parquet").mode("append").save(file_name)
+
+                        df_count = df.count()
+                        print("df=", df_count)
 
 
                         """
@@ -311,10 +329,6 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
 
             local_stepper.show_step("create dataframe and join")
 
-        if batch == 0:
-            df.write.format("parquet").save(file_name)
-        else:
-            df.write.format("parquet").mode("append").save(file_name)
 
         local_stepper.show_step("Write block")
 
