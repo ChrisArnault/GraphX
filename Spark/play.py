@@ -142,17 +142,47 @@ for row0 in range(cells):
             print("r0=", row0, "c0=", col0, "r=", row, "c=", col, "count=", count, "total=", total)
         df.show()
 
-def func(l):
-    yield len(l)
-    # yield Row(id=0, x=0, y=0, cell=0)
-    for i in l:
-        yield i
 
-x = vertices.filter(vertices.cell % 123 == 0)
+"""
+for i in l:
+    yield i
+"""
+
+def func(p_list):
+    yield p_list
+
+x = vertices.repartition(partitions, vertices.id % 10)
 y = x.rdd.mapPartitions(func)
-for i in y.collect():
-    print(i)
 
+degree = np.random.randint(0, D)
+fraction = float(degree) / N
+
+dst = vertices. \
+    withColumnRenamed("id", "dst_id"). \
+    withColumnRenamed("cell", "dst_cell"). \
+    sample(False, fraction)
+
+#                cell  row             col
+f1 = lambda x: [(i[0], i[3], int(i[3]/cells), i[3]%cells) for i in x]
+f2 = lambda x: [[(src, cell_src, row*cells+col) for r, row, col in CellIterator(row, col, 2, cells)] for src, cell_src, row, col in f1(x)]
+z = y.map(lambda x: f2(x))
+c = z.collect()
+d = z.flatMap(lambda x : x).flatMap(lambda x : x)
+ddf = sqlContext.createDataFrame(d, ['src_id', 'src_cell', 'dst_cell'])
+joined = ddf.join(dst, dst.dst_cell == ddf.dst_cell).select('src_id', 'dst_id')
+
+
+for ic in c:
+    if len(ic) == 0:
+        continue
+    print("---------")
+    for jc in ic:
+        print("a", jc)
+
+"""
+[[], [], [], [], [], 
+[Row(id=35, x=0.07413584590669997, y=0.0005590032288271818, cell=0), Row(id=566, x=0.0871836469225078, y=0.06884292555826566, cell=0), Row(id=736, x=0.06935023370130589, y=0.09140834057995562, cell=0), Row(id=738, x=0.04855167720496423, y=0.025231678227210508, cell=0), Row(id=46, x=0.014870555986308709, y=0.027513331049781042, cell=0), Row(id=102, x=0.09684039402638045, y=0.008138223824768032, cell=0), Row(id=848, x=0.015988584529946115, y=0.004414593917120846, cell=0), Row(id=577, x=0.061422084104769126, y=0.08981124326951317, cell=0), Row(id=632, x=0.08776387926398022, y=0.047861308012999815, cell=0)], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
+"""
 
 mylist = np.random.random(20)
 rdd = sc.parallelize(mylist)

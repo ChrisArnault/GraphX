@@ -255,88 +255,36 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
         if vertices is None:
             df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
             local_stepper.show_step("create dataframe")
-
-            if batch == 0:
-                df.write.format("parquet").save(file_name)
-            else:
-                df.write.format("parquet").mode("append").save(file_name)
-
         else:
 
-            first = True
-            for row0 in range(grid_size):
-                for col0 in range(grid_size):
-                    src_cell = col0 + grid_size * row0
+            def func(p_list):
+                yield p_list
 
-                    src = vertices.filter(vertices.cell == src_cell).alias("src").\
-                        withColumnRenamed("id", "src_id").\
-                        withColumnRenamed("cell", "src_cell")
+            y = vertices.rdd.mapPartitions(func)
 
-                    """
-                    src_count = src.count()
-                    if src_count == 0:
-                        continue
-                    """
+            degree = np.random.randint(0, conf.degree_max)
+            fraction = float(degree) / conf.vertices
 
-                    # src.show()
+            dst = vertices. \
+                withColumnRenamed("id", "dst_id"). \
+                withColumnRenamed("cell", "dst_cell"). \
+                sample(False, fraction)
 
-                    for r, row, col in CellIterator(row0, col0, 2, grid_size):
-                        dst_cell = col + grid_size * row
-
-                        degree = np.random.randint(0, conf.degree_max)
-                        fraction = float(degree) / total_rows
-
-                        dst = vertices.filter(vertices.cell == dst_cell). \
-                            withColumnRenamed("id", "dst_id"). \
-                            withColumnRenamed("cell", "dst_cell"). \
-                            sample(False, fraction)
-
-                        """
-                        dst_count = dst.count()
-                        if dst_count == 0:
-                            continue
-                        """
-
-                        # dst.show()
-
-                        # "src_id", "x", "y", "src_cell"
-                        # "dst_id", "x", "y", "dst_cell"
-                        # "eid", "src", "dst"
-
-                        edges = src.join(dst, (dst.dst_id != src.src_id), how="inner"). \
-                            select('src_id', "dst_id"). \
-                            withColumnRenamed("src_id", "src"). \
-                            withColumnRenamed("dst_id", "dst")
-
-                        """
-                        edge_count = edges.count()
-                        if edge_count == 0:
-                            continue
-                        """
-
-                        # edges.show()
-
-                        # print("src=", src_count, "dst=", dst_count, "edges=", edge_count)
-
-                        if first:
-                            first = False
-                            edges.write.format("parquet").save(file_name)
-                        else:
-                            edges.write.format("parquet").mode("append").save(file_name)
-
-                        """
-                        
-                        df = df.join(src, (src.src_id == df.src), how="inner"). \
-                                join(dst, (dst.dst_id == df.dst) &
-                                          (dst.dst_id != src.src_id) &
-                                           neighbour(grid_size, dst.dst_cell, src.src_cell),
-                                     how="inner").\
-                                select("eid", "src", "dst")
-                        """
-                    local_stepper.show_step("create dataframe and join")
+            #                cell  row             col
+            f1 = lambda x: [(i[0], i[3], int(i[3] / grid_size), i[3] % grid_size) for i in x]
+            f2 = lambda x: [[(src, cell_src, row * grid_size + col) for r, row, col in CellIterator(row, col, 2, grid_size)] for
+                            src, cell_src, row, col in f1(x)]
+            z = y.map(lambda x: f2(x))
+            d = z.flatMap(lambda x: x).flatMap(lambda x: x)
+            ddf = sqlContext.createDataFrame(d, ['src_id', 'src_cell', 'dst_cell'])
+            df = ddf.join(dst, dst.dst_cell == ddf.dst_cell).select('src_id', 'dst_id')
 
             local_stepper.show_step("create dataframe and join")
 
+        if batch == 0:
+            df.write.format("parquet").save(file_name)
+        else:
+            df.write.format("parquet").mode("append").save(file_name)
 
         local_stepper.show_step("Write block")
 
