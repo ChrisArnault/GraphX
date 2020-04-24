@@ -165,6 +165,100 @@ Results
 </tr>
 </table>
 
+3. Varying the number of vertices and the max-degree for edges (and batches for edges)
+
+complete change in the strategy for the join:
+* using map partition
+* select only neighbour cells
+
+
+<table>
+<thead>
+<td>vertices</td>
+<td>v_batches</td>
+<td>V time</td>
+<td>max_degree</td>
+<td>e_batches</td>
+<td>edges</td>
+<td>E time</td>
+<td>write time</td>
+<td>degree</td>
+<td>triangles</td>
+</thead>
+<tr>
+<td>1000</td>
+<td>10</td>
+<td>0h0m1.491s</td>
+<td>1000</td>
+<td>1</td>
+<td>1566</td>
+<td>0h0m1.491s</td>
+<td>0h0m11.733s</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>10 000</td>
+<td>10</td>
+<td>0h0m46.351s</td>
+<td>1000</td>
+<td>1</td>
+<td>15452</td>
+<td>0h0m1.551s</td>
+<td>0h0m19.689s</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>100 000</td>
+<td>10</td>
+<td>0h0m49.201s</td>
+<td>100 000</td>
+<td>1</td>
+<td>3921357</td>
+<td>0h0m1.735s</td>
+<td>0h0m24.630s</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>1000 000</td>
+<td>10</td>
+<td>0h1m24.758s</td>
+<td>1000 000</td>
+<td>1</td>
+<td>428932503</td>
+<td>0h0m1.918s</td>
+<td>0h0m38.405s</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>10 000 000</td>
+<td>10</td>
+<td>0h6m56.625s</td>
+<td>10 000 000</td>
+<td>1</td>
+<td>22874329457</td>
+<td>0h0m2.784s</td>
+<td>0h17m19.570s</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>100 000 000</td>
+<td>10</td>
+<td></td>
+<td>100 000 000</td>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</table>
+
 GraphFrame
 ----------
 Once vertices and edges are created, graphframes are assembled
