@@ -201,7 +201,7 @@ complete change in the strategy for the join:
 <td>10 000</td>
 <td>10</td>
 <td>0h0m46.351s</td>
-<td>1000</td>
+<td>10 000</td>
 <td>1</td>
 <td>15452</td>
 <td>0h0m1.551s</td>
