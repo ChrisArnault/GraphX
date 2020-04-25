@@ -247,12 +247,12 @@ complete change in the strategy for the join:
 </tr>
 <tr>
 <td>100 000 000</td>
-<td>10</td>
-<td></td>
+<td>50</td>
+<td>1h6h44.922s</td>
 <td>100 000 000</td>
 <td>1</td>
 <td></td>
-<td></td>
+<td>0h0m6.979s</td>
 <td></td>
 <td></td>
 <td></td>
