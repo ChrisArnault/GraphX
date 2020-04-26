@@ -28,7 +28,7 @@ def wait():
         print("wait")
         time.sleep(3)
 
-N = 10000
+N = 100
 D = N
 partitions = 100
 grid_size = 50
@@ -162,11 +162,22 @@ all_edges = sqlContext.createDataFrame(all_visited_cells, ['src_id', 'src_x', 's
 degree = np.random.randint(0, D)
 fraction = float(degree) / N
 
-df = all_edges.join(dst, (dst.dst_cell == all_edges.dst_cell) & (all_edges.src_id != dst.dst_id)). \
-    withColumnRenamed("src_id", "src"). \
-    withColumnRenamed("dst_id", "dst"). \
-    withColumn('id', monotonically_increasing_id())
-
+batches = 1
+df = None
+for batch in range(batches):
+    df_batch = all_edges.join(dst,
+                              (all_edges.src_cell % batches == batch) &
+                              (dst.dst_cell == all_edges.dst_cell) &
+                              (all_edges.src_id != dst.dst_id)).\
+        withColumnRenamed("src_id", "src"). \
+        withColumnRenamed("dst_id", "dst"). \
+        withColumn('id', monotonically_increasing_id())
+    print("batch", batch, df_batch.count())
+    df_batch.show()
+    if df is None:
+        df = df_batch
+    else:
+        df = df.union(df_batch)
 
 points = vertices.toPandas()
 x_points = points["x"]

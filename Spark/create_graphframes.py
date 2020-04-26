@@ -242,76 +242,11 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
 
     previous_size = 0
 
-    loops = batches
-    rows = int(total_rows / loops)
-    row = 0
-    
     local_stepper = Stepper()
 
-    for batch in range(loops):
-        print("batch> ", batch, " range ", row, row + rows)
-
-        gc.collect()
-
-        if vertices is None:
-            df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
-            local_stepper.show_step("create dataframe")
-        else:
-
-            def func(p_list):
-                yield p_list
-
-            degree = np.random.randint(0, conf.degree_max)
-            fraction = float(degree) / conf.vertices
-
-            dst = vertices. \
-                withColumnRenamed("id", "dst_id"). \
-                withColumnRenamed("cell", "dst_cell"). \
-                sample(False, fraction)
-
-            vertices_rdd = vertices.rdd.mapPartitions(func)
-
-            vertices_columns = ["id", "x", "y", "cell"]
-            j_id = vertices_columns.index("id")
-            j_x = vertices_columns.index("x")
-            j_y = vertices_columns.index("y")
-            # j_row = vertices_columns.index("row")
-            # j_col = vertices_columns.index("col")
-            j_cell = vertices_columns.index("cell")
-
-            f_src_id = lambda i: i[j_id]
-            f_cell = lambda i: i[j_cell]
-            f_row = lambda i: int(i[j_cell] / grid_size)
-            f_col = lambda i: i[j_cell] % grid_size
-
-            #                cell  row             col
-            # new columns to display row column instead of x, y
-            # for each RDD row, produce new columns : (id, cell, cell_row, cell_column)
-
-            visit_cells = lambda x: [(f_src_id(i), f_cell(i), f_row(i), f_col(i)) for i in x]
-
-            # visit all neighbour cells for each cell,
-            #
-            f2 = lambda x: [[(src_id, cell_src, _row * grid_size + _col) for r, _row, _col in cell_iterator(_row, _col, 2, grid_size)] for
-                            src_id, cell_src, _row, _col in visit_cells(x)]
-
-            # RDD of full visit including neighbour cells
-            full_visit = vertices_rdd.map(lambda x: f2(x))
-
-            # flat visit of all neighbour cells
-            all_visited_cells = full_visit.flatMap(lambda x: x).flatMap(lambda x: x)
-
-            # make it a DF
-            all_edges = sqlContext.createDataFrame(all_visited_cells, ['src_id', 'src_cell', 'dst_cell'])
-
-            # join to get all edges from neighbour cells and format schema as needed by GraphFrames
-            df = all_edges.join(dst, (dst.dst_cell == all_edges.dst_cell) &
-                                (all_edges.src_id != dst.dst_id)).select('src_id', 'dst_id'). \
-                withColumnRenamed("src_id", "src"). \
-                    withColumnRenamed("dst_id", "dst"). \
-                withColumn('id', monotonically_increasing_id())
-
-            local_stepper.show_step("create dataframe and join")
+    def save_batch(batch, df, directory, file):
+        global previous_size
+        file_name = "{}/{}".format(directory, file)
 
         if batch == 0:
             df.write.format("parquet").save(file_name)
@@ -319,12 +254,85 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
             df.write.format("parquet").mode("append").save(file_name)
 
         local_stepper.show_step("Write block")
-
         new_size = get_file_size(directory, file)
         increment = new_size - previous_size
         previous_size = new_size
-        row += rows
         print("file_size={}M increment={}M".format(new_size, increment))
+
+    if vertices is None:
+        loops = batches
+        rows = int(total_rows / loops)
+        row = 0
+
+        for batch in range(loops):
+            print("batch> ", batch, " range ", row, row + rows)
+            gc.collect()
+            df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
+            local_stepper.show_step("create dataframe")
+            row += rows
+            save_batch(batch, df, directory, file)
+    else:
+        def func(p_list):
+            yield p_list
+
+        degree = np.random.randint(0, conf.degree_max)
+        fraction = float(degree) / conf.vertices
+
+        dst = vertices. \
+            withColumnRenamed("id", "dst_id"). \
+            withColumnRenamed("cell", "dst_cell"). \
+            sample(False, fraction)
+
+        vertices_rdd = vertices.rdd.mapPartitions(func)
+
+        vertices_columns = ["id", "x", "y", "cell"]
+        j_id = vertices_columns.index("id")
+        j_x = vertices_columns.index("x")
+        j_y = vertices_columns.index("y")
+        # j_row = vertices_columns.index("row")
+        # j_col = vertices_columns.index("col")
+        j_cell = vertices_columns.index("cell")
+
+        f_src_id = lambda i: i[j_id]
+        f_cell = lambda i: i[j_cell]
+        f_row = lambda i: int(i[j_cell] / grid_size)
+        f_col = lambda i: i[j_cell] % grid_size
+
+        #                cell  row             col
+        # new columns to display row column instead of x, y
+        # for each RDD row, produce new columns : (id, cell, cell_row, cell_column)
+
+        visit_cells = lambda x: [(f_src_id(i), f_cell(i), f_row(i), f_col(i)) for i in x]
+
+        # visit all neighbour cells for each cell,
+        #
+        f2 = lambda x: [[(src_id, cell_src, _row * grid_size + _col) for r, _row, _col in cell_iterator(_row, _col, 2, grid_size)] for
+                        src_id, cell_src, _row, _col in visit_cells(x)]
+
+        # RDD of full visit including neighbour cells
+        full_visit = vertices_rdd.map(lambda x: f2(x))
+
+        # flat visit of all neighbour cells
+        all_visited_cells = full_visit.flatMap(lambda x: x).flatMap(lambda x: x)
+
+        # make it a DF
+        all_edges = sqlContext.createDataFrame(all_visited_cells, ['src_id', 'src_cell', 'dst_cell'])
+
+        # join to get all edges from neighbour cells and format schema as needed by GraphFrames
+        for batch in batches:
+            print("batch> ", batch)
+            gc.collect()
+            df = all_edges.join(dst, ((all_edges.src_cell % batches) == batch) &
+                                (dst.dst_cell == all_edges.dst_cell) &
+                                (all_edges.src_id != dst.dst_id)).\
+                select('src_id', 'dst_id'). \
+                withColumnRenamed("src_id", "src"). \
+                withColumnRenamed("dst_id", "dst"). \
+                withColumn('id', monotonically_increasing_id())
+
+            local_stepper.show_step("create dataframe and join")
+
+            save_batch(batch, df, directory, file)
 
     df = spark.read.format("parquet").load(file_name)
     local_stepper.show_step("Read full file")
