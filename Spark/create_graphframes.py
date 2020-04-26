@@ -265,7 +265,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
         row = 0
 
         for batch in range(loops):
-            print("batch> ", batch, " range ", row, row + rows)
+            print("vertices - batch> ", batch, " range ", row, row + rows)
             gc.collect()
             df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
             local_stepper.show_step("create dataframe")
@@ -320,7 +320,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
 
         # join to get all edges from neighbour cells and format schema as needed by GraphFrames
         for batch in batches:
-            print("batch> ", batch)
+            print("edges - batch> ", batch)
             gc.collect()
             df = all_edges.join(dst, ((all_edges.src_cell % batches) == batch) &
                                 (dst.dst_cell == all_edges.dst_cell) &
