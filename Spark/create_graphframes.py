@@ -243,8 +243,6 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
     local_stepper = Stepper()
 
     def save_batch(batch, df, directory, file, previous_size=0):
-        global
-
         file_name = "{}/{}".format(directory, file)
 
         if batch == 0:
