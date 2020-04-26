@@ -240,12 +240,11 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
     print("batch_create> ", directory, file, "total_rows=", total_rows, "batches=", batches)
     file_name = "{}/{}".format(directory, file)
 
-    previous_size = 0
-
     local_stepper = Stepper()
 
-    def save_batch(batch, df, directory, file):
-        global previous_size
+    def save_batch(batch, df, directory, file, previous_size=0):
+        global
+
         file_name = "{}/{}".format(directory, file)
 
         if batch == 0:
@@ -256,9 +255,11 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
         local_stepper.show_step("Write block")
         new_size = get_file_size(directory, file)
         increment = new_size - previous_size
-        previous_size = new_size
         print("file_size={}M increment={}M".format(new_size, increment))
 
+        return new_size
+
+    file_size = 0
     if vertices is None:
         loops = batches
         rows = int(total_rows / loops)
@@ -270,7 +271,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
             df = sqlContext.createDataFrame(build_values(row, row + rows), columns)
             local_stepper.show_step("create dataframe")
             row += rows
-            save_batch(batch, df, directory, file)
+            file_size = save_batch(batch, df, directory, file, file_size)
     else:
         def func(p_list):
             yield p_list
@@ -332,7 +333,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
 
             local_stepper.show_step("create dataframe and join")
 
-            save_batch(batch, df, directory, file)
+            file_size = save_batch(batch, df, directory, file, file_size)
 
     df = spark.read.format("parquet").load(file_name)
     local_stepper.show_step("Read full file")
