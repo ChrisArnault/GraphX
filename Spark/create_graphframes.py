@@ -271,12 +271,13 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
 
             vertices_rdd = vertices.rdd.mapPartitions(func)
 
-            j_id = columns.index("id")
-            j_x = columns.index("x")
-            j_y = columns.index("y")
-            j_row = columns.index("row")
-            j_col = columns.index("col")
-            j_cell = columns.index("cell")
+            vertices_columns = ["id", "x", "y", "cell"]
+            j_id = vertices_columns.index("id")
+            j_x = vertices_columns.index("x")
+            j_y = vertices_columns.index("y")
+            # j_row = vertices_columns.index("row")
+            # j_col = vertices_columns.index("col")
+            j_cell = vertices_columns.index("cell")
 
             f_src_id = lambda i: i[j_id]
             f_cell = lambda i: i[j_cell]
@@ -307,7 +308,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
             df = all_edges.join(dst, (dst.dst_cell == all_edges.dst_cell) &
                                 (all_edges.src_id != dst.dst_id)).select('src_id', 'dst_id'). \
                 withColumnRenamed("src_id", "src"). \
-                withColumnRenamed("dst_id", "dst"). \
+                    withColumnRenamed("dst_id", "dst"). \
                 withColumn('id', monotonically_increasing_id())
 
             local_stepper.show_step("create dataframe and join")
