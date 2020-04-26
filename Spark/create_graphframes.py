@@ -261,8 +261,6 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
             def func(p_list):
                 yield p_list
 
-            vertices_rdd = vertices.rdd.mapPartitions(func)
-
             degree = np.random.randint(0, conf.degree_max)
             fraction = float(degree) / conf.vertices
 
@@ -271,13 +269,30 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
                 withColumnRenamed("cell", "dst_cell"). \
                 sample(False, fraction)
 
+            vertices_rdd = vertices.rdd.mapPartitions(func)
+
+            j_id = columns.index("id")
+            j_x = columns.index("x")
+            j_y = columns.index("y")
+            j_row = columns.index("row")
+            j_col = columns.index("col")
+            j_cell = columns.index("cell")
+
+            f_src_id = lambda i: i[j_id]
+            f_cell = lambda i: i[j_cell]
+            f_row = lambda i: int(i[j_cell] / grid_size)
+            f_col = lambda i: i[j_cell] % grid_size
+
             #                cell  row             col
             # new columns to display row column instead of x, y
-            f1 = lambda x: [(i[0], i[3], int(i[3] / grid_size), i[3] % grid_size) for i in x]
+            # for each RDD row, produce new columns : (id, cell, cell_row, cell_column)
 
-            # visit all neighbour cells
-            f2 = lambda x: [[(src, cell_src, _row * grid_size + _col) for r, _row, _col in cell_iterator(_row, _col, 2, grid_size)] for
-                            src, cell_src, _row, _col in f1(x)]
+            visit_cells = lambda x: [(f_src_id(i), f_cell(i), f_row(i), f_col(i)) for i in x]
+
+            # visit all neighbour cells for each cell,
+            #
+            f2 = lambda x: [[(src_id, cell_src, _row * grid_size + _col) for r, _row, _col in cell_iterator(_row, _col, 2, grid_size)] for
+                            src_id, cell_src, _row, _col in visit_cells(x)]
 
             # RDD of full visit including neighbour cells
             full_visit = vertices_rdd.map(lambda x: f2(x))
@@ -289,7 +304,8 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
             all_edges = sqlContext.createDataFrame(all_visited_cells, ['src_id', 'src_cell', 'dst_cell'])
 
             # join to get all edges from neighbour cells and format schema as needed by GraphFrames
-            df = all_edges.join(dst, dst.dst_cell == all_edges.dst_cell).select('src_id', 'dst_id'). \
+            df = all_edges.join(dst, (dst.dst_cell == all_edges.dst_cell) &
+                                (all_edges.src_id != dst.dst_id)).select('src_id', 'dst_id'). \
                 withColumnRenamed("src_id", "src"). \
                 withColumnRenamed("dst_id", "dst"). \
                 withColumn('id', monotonically_increasing_id())
