@@ -318,7 +318,7 @@ def batch_create(directory, file, build_values, columns, total_rows, batches,
         all_edges = sqlContext.createDataFrame(all_visited_cells, ['src_id', 'src_cell', 'dst_cell'])
 
         # join to get all edges from neighbour cells and format schema as needed by GraphFrames
-        for batch in batches:
+        for batch in range(batches):
             print("edges - batch> ", batch)
             gc.collect()
             df = all_edges.join(dst, ((all_edges.src_cell % batches) == batch) &
