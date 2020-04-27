@@ -55,13 +55,13 @@ We use the mapPartition mechanism to visit partitions
 * we define a (lambda) function able to visit all cells plus all
   neighbour cells of all visited cells
 
-        visit_cells = lambda x: [(src_id, cell, row, col) for i in x]
+        visit_cells = lambda x: [(src_id, x, y, cell, row, col) for i in x]
 
         # visit all neighbour cells for each cell,
         #
-        f2 = lambda x: [[(src_id, cell_src, _row * grid_size + _col) 
+        f2 = lambda x: [[(src_id, x, y, cell_src, _row * grid_size + _col) 
                             for _, _row, _col in cell_iterator(_row, _col, 2, grid_size)] 
-                            for src_id, cell_src, _row, _col in visit_cells(x)]
+                            for src_id, x, y, cell_src, _row, _col in visit_cells(x)]
 
 * to operate the visit, we apply mapPartitions to the vertices,
   and construct the complete list of visited cells and make a dataframe
@@ -72,7 +72,7 @@ We use the mapPartition mechanism to visit partitions
         vertices_rdd = vertices.rdd.mapPartitions(func)
         full_visit = vertices_rdd.map(lambda x: f2(x))
         all_visited_cells = full_visit.flatMap(lambda x: x).flatMap(lambda x: x)
-        all_edges = sqlContext.createDataFrame(all_visited_cells, ['src_id', 'src_cell', 'dst_cell'])
+        all_edges = sqlContext.createDataFrame(all_visited_cells, ['src_id', 'src_cell', 'src_x', 'src_y', 'dst_cell'])
 
 * Then this list of edges is filled with objects using a join by the dest vertices (adding an edge id)
   considering that a sample
@@ -85,6 +85,13 @@ We use the mapPartition mechanism to visit partitions
                 withColumn('id', monotonically_increasing_id())
 
 * optionally, we may limit the max degree by make the dest dataframe a sample
+
+        dst = vertices. \
+            withColumnRenamed("id", "dst_id"). \
+            withColumnRenamed("cell", "dst_cell"). \
+            withColumnRenamed("x", "dst_x"). \
+            withColumnRenamed("y", "dst_y"). \
+            sample(False, fraction)
 
         degree = np.random.randint(0, degree_max)
         fraction = float(degree) / N
@@ -285,8 +292,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>1566</td>
 <td>0h0m1.491s</td>
 <td>0h0m11.733s</td>
-<td></td>
-<td></td>
+<td>0h0m8.403s</td>
+<td>0h0m5.923s</td>
 </tr>
 <tr>
 <td>10 000</td>
@@ -294,11 +301,11 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h0m46.351s</td>
 <td>10 000</td>
 <td>1</td>
-<td>15452</td>
+<td>15 452</td>
 <td>0h0m1.551s</td>
 <td>0h0m19.689s</td>
-<td></td>
-<td></td>
+<td>0h0m10.605s</td>
+<td>0h0m15.617s</td>
 </tr>
 <tr>
 <td>100 000</td>
@@ -306,11 +313,11 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h0m49.201s</td>
 <td>100 000</td>
 <td>1</td>
-<td>3921357</td>
+<td>3 921 357</td>
 <td>0h0m1.735s</td>
 <td>0h0m24.630s</td>
-<td></td>
-<td></td>
+<td>0h0m11.785s</td>
+<td>0h2m16.334s</td>
 </tr>
 <tr>
 <td>1000 000</td>
@@ -318,10 +325,10 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h1m24.758s</td>
 <td>1000 000</td>
 <td>1</td>
-<td>428932503</td>
+<td>428 932 503</td>
 <td>0h0m1.918s</td>
 <td>0h0m38.405s</td>
-<td></td>
+<td>0h1m12.686s</td>
 <td></td>
 </tr>
 <tr>
@@ -330,7 +337,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h6m56.625s</td>
 <td>10 000 000</td>
 <td>1</td>
-<td>22874329457</td>
+<td>22 874 329 457</td>
 <td>0h0m2.784s</td>
 <td>0h17m19.570s</td>
 <td></td>
@@ -342,9 +349,9 @@ complete change in the strategy for the join (see the paragraph above)
 <td>1h6h44.922s</td>
 <td>1000 000</td>
 <td>100</td>
+<td>49 848 057 868</td>
 <td></td>
-<td></td>
-<td>2h</td>
+<td>2h7h28.941s</td>
 <td></td>
 <td></td>
 </tr>
