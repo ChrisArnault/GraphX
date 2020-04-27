@@ -43,12 +43,17 @@ Other strategy for creating edges
 
 We use the mapPartition mechanism to visit partitions
 
-* we divide the space in a grid (matrix) of cells
-* we assume that the connection beteen objects will exist only when objects are close to each other, ie. up to a maximum distance
-* then we construct the cell matrix so as the cell size = the max distance
-* thus, each object may only be associated with objects found in the same cell ***or*** in immediate neighbour cells
-* we create a "cell_iterator" able to find all immediate neighbour cells of a given cell
-* we define a (lambda) function able to visit all cells plus all neighbour cells of all visited cells
+* we divide the space in a matrix (grid) of cells
+* we assume that the connection beteen objects will exist only when
+  objects are close enough to each other, ie. up to a maximum distance
+* in fact, we construct the cell matrix so as the cell size = the max distance
+* thus, each object may only be associated with objects found
+  in the same cell ***or*** in immediate neighbour cells
+  (neighbours by sides or by corners)
+* we create a "cell_iterator" able to visit all immediate neighbour
+  cells around a given cell
+* we define a (lambda) function able to visit all cells plus all
+  neighbour cells of all visited cells
 
         visit_cells = lambda x: [(src_id, cell, row, col) for i in x]
 
@@ -58,7 +63,8 @@ We use the mapPartition mechanism to visit partitions
                             for _, _row, _col in cell_iterator(_row, _col, 2, grid_size)] 
                             for src_id, cell_src, _row, _col in visit_cells(x)]
 
-* to operate the visit, we apply mapPartitions to the vertices, and construct the complete list of visited cells and make a dataframe
+* to operate the visit, we apply mapPartitions to the vertices,
+  and construct the complete list of visited cells and make a dataframe
 
         def func(p_list):
             yield p_list
@@ -69,7 +75,7 @@ We use the mapPartition mechanism to visit partitions
         all_edges = sqlContext.createDataFrame(all_visited_cells, ['src_id', 'src_cell', 'dst_cell'])
 
 * Then this list of edges is filled with objects using a join by the dest vertices (adding an edge id)
-considering that a sample
+  considering that a sample
 
             df = all_edges.join(dst, (dst.dst_cell == all_edges.dst_cell) &
                                 (all_edges.src_id != dst.dst_id)).\
@@ -95,7 +101,8 @@ considering that a sample
                 withColumnRenamed("dst_id", "dst"). \
                 withColumn('id', monotonically_increasing_id())
 
-* Of course we also add an edge construction really limited with the distance between objects.
+* Of course we also improve the edge construction by considering the
+  real distance between objects.
 
             df = all_edges.join(dst, ((all_edges.src_cell % batches) == batch) &
                                 (dst.dst_cell == all_edges.dst_cell) &
@@ -107,6 +114,20 @@ considering that a sample
                 withColumn('id', monotonically_increasing_id())
 
 To check the algorithm we make a graphical representation
+
+        points = vertices.toPandas()
+        x_points = points["x"]
+        y_points = points["y"]
+        
+        edges = df.toPandas()
+        e_src_x = edges["src_x"]
+        e_src_y = edges["src_y"]
+        e_dst_x = edges["dst_x"]
+        e_dst_y = edges["dst_y"]
+        
+        plt.scatter(x_points, y_points, s=1)
+        e = [plt.plot((e_src_x[i], e_dst_x[i]), (e_src_y[i], e_dst_y[i])) for i, x in enumerate(e_src_x)]
+        plt.show()
 
 ![draw](doc/test2.png)
 
@@ -239,9 +260,7 @@ Results
 
 3. Varying the number of vertices and the max-degree for edges (and batches for edges)
 
-complete change in the strategy for the join:
-* using map partition
-* select only neighbour cells
+complete change in the strategy for the join (see the paragraph above)
 
 
 <table>
@@ -321,11 +340,11 @@ complete change in the strategy for the join:
 <td>100 000 000</td>
 <td>50</td>
 <td>1h6h44.922s</td>
-<td>100 000 000</td>
-<td>1</td>
+<td>1000 000</td>
+<td>100</td>
 <td></td>
-<td>0h0m6.979s</td>
 <td></td>
+<td>2h</td>
 <td></td>
 <td></td>
 </tr>
