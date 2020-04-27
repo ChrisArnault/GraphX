@@ -38,6 +38,78 @@ two cells are said neighbours when:
 * when they are adjacent by sides, ***or*** by corners
 * including a continuous spheric space (left-right ***and*** top-down)
 
+Other strategy for creating edges
+---------------------------------
+
+We use the mapPartition mechanism to visit partitions
+
+* we divide the space in a grid (matrix) of cells
+* we assume that the connection beteen objects will exist only when objects are close to each other, ie. up to a maximum distance
+* then we construct the cell matrix so as the cell size = the max distance
+* thus, each object may only be associated with objects found in the same cell ***or*** in immediate neighbour cells
+* we create a "cell_iterator" able to find all immediate neighbour cells of a given cell
+* we define a (lambda) function able to visit all cells plus all neighbour cells of all visited cells
+
+        visit_cells = lambda x: [(src_id, cell, row, col) for i in x]
+
+        # visit all neighbour cells for each cell,
+        #
+        f2 = lambda x: [[(src_id, cell_src, _row * grid_size + _col) 
+                            for _, _row, _col in cell_iterator(_row, _col, 2, grid_size)] 
+                            for src_id, cell_src, _row, _col in visit_cells(x)]
+
+* to operate the visit, we apply mapPartitions to the vertices, and construct the complete list of visited cells and make a dataframe
+
+        def func(p_list):
+            yield p_list
+            
+        vertices_rdd = vertices.rdd.mapPartitions(func)
+        full_visit = vertices_rdd.map(lambda x: f2(x))
+        all_visited_cells = full_visit.flatMap(lambda x: x).flatMap(lambda x: x)
+        all_edges = sqlContext.createDataFrame(all_visited_cells, ['src_id', 'src_cell', 'dst_cell'])
+
+* Then this list of edges is filled with objects using a join by the dest vertices (adding an edge id)
+considering that a sample
+
+            df = all_edges.join(dst, (dst.dst_cell == all_edges.dst_cell) &
+                                (all_edges.src_id != dst.dst_id)).\
+                select('src_id', 'dst_id'). \
+                withColumnRenamed("src_id", "src"). \
+                withColumnRenamed("dst_id", "dst"). \
+                withColumn('id', monotonically_increasing_id())
+
+* optionally, we may limit the max degree by make the dest dataframe a sample
+
+        degree = np.random.randint(0, degree_max)
+        fraction = float(degree) / N
+        dst = vertices.sample(False, fraction)
+
+
+* this operation may also performed by batches by hashing the cell id of the source cell
+
+            df = all_edges.join(dst, ((all_edges.src_cell % batches) == batch) &
+                                (dst.dst_cell == all_edges.dst_cell) &
+                                (all_edges.src_id != dst.dst_id)).\
+                select('src_id', 'dst_id'). \
+                withColumnRenamed("src_id", "src"). \
+                withColumnRenamed("dst_id", "dst"). \
+                withColumn('id', monotonically_increasing_id())
+
+* Of course we also add an edge construction really limited with the distance between objects.
+
+            df = all_edges.join(dst, ((all_edges.src_cell % batches) == batch) &
+                                (dst.dst_cell == all_edges.dst_cell) &
+                                (all_edges.src_id != dst.dst_id) &
+                                (dist(src.x, src.y, dst.x, dst.y) < max_distance)).\
+                select('src_id', 'dst_id'). \
+                withColumnRenamed("src_id", "src"). \
+                withColumnRenamed("dst_id", "dst"). \
+                withColumn('id', monotonically_increasing_id())
+
+To check the algorithm we make a graphical representation
+
+![draw](doc/test2.png)
+
 Batch management
 ----------------
 Construction of large set of vertices and edges can be split in batches
