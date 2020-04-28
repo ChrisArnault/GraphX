@@ -340,7 +340,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>22 874 329 457</td>
 <td>0h0m2.784s</td>
 <td>0h17m19.570s</td>
-<td></td>
+<td>0h11m8.359s</td>
 <td></td>
 </tr>
 <tr>
@@ -352,7 +352,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>49 848 057 868</td>
 <td></td>
 <td>2h7h28.941s</td>
-<td></td>
+<td>0h22m29.251s</td>
 <td></td>
 </tr>
 </table>
