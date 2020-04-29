@@ -292,8 +292,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>1566</td>
 <td>0h0m1.491s</td>
 <td>0h0m11.733s</td>
-<td>0h0m8.403s</td>
-<td>0h0m5.923s</td>
+<td>0h0m9.657s</td>
+<td>0h0m13.954s</td>
 </tr>
 <tr>
 <td>10 000</td>
@@ -304,8 +304,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>15 452</td>
 <td>0h0m1.551s</td>
 <td>0h0m19.689s</td>
-<td>0h0m10.605s</td>
-<td>0h0m15.617s</td>
+<td>0h0m11.036s</td>
+<td>0h2m37.422s</td>
 </tr>
 <tr>
 <td>100 000</td>
@@ -316,8 +316,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>3 921 357</td>
 <td>0h0m1.735s</td>
 <td>0h0m24.630s</td>
-<td>0h0m11.785s</td>
-<td>0h2m16.334s</td>
+<td>0h0m59.007s</td>
+<td></td>
 </tr>
 <tr>
 <td>1000 000</td>
@@ -327,8 +327,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>1</td>
 <td>428 932 503</td>
 <td>0h0m1.918s</td>
-<td>0h0m38.405s</td>
-<td>0h1m12.686s</td>
+<td>0h0m45.455s</td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -339,8 +339,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>1</td>
 <td>22 874 329 457</td>
 <td>0h0m2.784s</td>
-<td>0h17m19.570s</td>
-<td>0h11m8.359s</td>
+<td>0h17m27.193s</td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -352,7 +352,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>49 848 057 868</td>
 <td></td>
 <td>2h7h28.941s</td>
-<td>0h22m29.251s</td>
+<td></td>
 <td></td>
 </tr>
 </table>
