@@ -106,14 +106,40 @@ g.vertices.show(10)
 g.edges.show(10)
 s.show_step("Display the vertex and edge DataFrames")
 
-vertexDegrees = g.degrees
-vertexDegrees.count()
-vertexDegrees.show()
-s.show_step("Get a DataFrame with columns id and degree")
+n_vertices = vertices.count()
 
+# vertexDegrees = g.degrees
+# vertexDegrees.count()
+# vertexDegrees.show()
+# s.show_step("Get a DataFrame with columns id and degree")
+
+
+"""
 triangles = g.triangleCount()
 c = triangles.count()
+print("c=", c)
 triangles.show()
 s.show_step("Get triangle count")
+"""
+
+batches = 10
+cells = 10000
+grid = cells/batches
+
+print("vertices=", vertices.count(), "batches=", batches)
+
+total = 0
+for i in range(batches):
+    g1 = g.filterVertices("int(cell/{}) == {}".format(grid, i))
+    triangles = g1.triangleCount()
+    s.show_step("partial triangleCount")
+    # triangles.show()
+    count = triangles.agg({"count":"sum"}).collect()[0]
+    print("batch=", i, "vertices=", g1.vertices.count(), "edges=", g1.edges.count(), "partial", count)
+    total += count
+
+print("total=", total)
+
 
 spark.sparkContext.stop()
+
