@@ -1,3 +1,3 @@
 
-export SPARK_CORES=68
+export SPARK_CORES=4
 source yarn.sh

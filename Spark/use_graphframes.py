@@ -16,7 +16,7 @@ if has_spark:
 if has_spark:
     spark = SparkSession.builder.appName("GraphX").getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
-    spark.sparkContext.setCheckpointDir("/tmp")
+    spark.sparkContext.setCheckpointDir("/data/spark_local")
 
     sqlContext = SQLContext(spark.sparkContext)
 
