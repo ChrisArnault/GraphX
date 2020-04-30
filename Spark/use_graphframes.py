@@ -134,7 +134,8 @@ for i in range(batches):
     triangles = g1.triangleCount()
     s.show_step("partial triangleCount")
     # triangles.show()
-    count = triangles.agg({"count":"sum"}).collect()[0]
+    count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
+    # count = triangles.sum("count").collect()[0]
     print("batch=", i, "vertices=", g1.vertices.count(), "edges=", g1.edges.count(), "partial", count)
     total += count
 
