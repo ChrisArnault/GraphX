@@ -2,6 +2,8 @@ import numpy as np
 import time
 import os
 import sys
+import gc
+
 
 has_spark = os.name != 'nt'
 
@@ -16,7 +18,7 @@ if has_spark:
 if has_spark:
     spark = SparkSession.builder.appName("GraphX").getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
-    spark.sparkContext.setCheckpointDir("/data/spark_local")
+    # spark.sparkContext.setCheckpointDir("/lsst/data/tmp")
 
     sqlContext = SQLContext(spark.sparkContext)
 
@@ -41,7 +43,7 @@ class Conf(object):
             elif key == "name" or key == "F" or key == "f":
                 self.name = a[1]
             elif key == "BT" or key == "bt":
-                self.bt = a[1]
+                self.bt = int(a[1])
             elif key == "Args" or key == "args" or key == "A" or key == "a":
                 run = False
             elif key[:2] == "-h" or key[0] == "h":
@@ -134,14 +136,19 @@ print("vertices=", vertices.count(), "batches=", batches)
 
 total = 0
 for i in range(batches):
+    gc.collect()
+
     st = Stepper()
     g1 = g.filterVertices("int(cell/{}) == {}".format(grid, i))
     triangles = g1.triangleCount()
     st.show_step("partial triangleCount")
-    # triangles.show()
-    count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
-    st.show_step("partial triangleCount sum")
-    # count = triangles.sum("count").collect()[0]
+    # count = triangles.count()
+    count = 0
+    try:
+        count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
+        st.show_step("partial triangleCount sum")
+    except:
+        print("memory error")
     print("batch=", i, "vertices=", g1.vertices.count(), "edges=", g1.edges.count(), "partial", count)
     total += count
 
