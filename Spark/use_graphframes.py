@@ -26,6 +26,7 @@ class Conf(object):
         self.partitions = 300
         self.graphs_base = "/user/chris.arnault/graphs"
         self.name = "test"
+        self.bt = 1
         self.graphs = ""
 
     def set(self):
@@ -39,12 +40,15 @@ class Conf(object):
                 self.partitions = int(a[1])
             elif key == "name" or key == "F" or key == "f":
                 self.name = a[1]
+            elif key == "BT" or key == "bt":
+                self.bt = a[1]
             elif key == "Args" or key == "args" or key == "A" or key == "a":
                 run = False
             elif key[:2] == "-h" or key[0] == "h":
                 print('''
 > python create_graphfames.py 
   partitions|P|p = 300
+  BT|bt = 1          (batches for triangles)
   name|F|f = "test"
                 ''')
                 exit()
@@ -122,7 +126,7 @@ triangles.show()
 s.show_step("Get triangle count")
 """
 
-batches = 10
+batches = conf.bt
 cells = 10000
 grid = cells/batches
 
