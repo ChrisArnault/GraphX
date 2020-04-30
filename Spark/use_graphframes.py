@@ -130,14 +130,18 @@ print("vertices=", vertices.count(), "batches=", batches)
 
 total = 0
 for i in range(batches):
+    st = Stepper()
     g1 = g.filterVertices("int(cell/{}) == {}".format(grid, i))
     triangles = g1.triangleCount()
-    s.show_step("partial triangleCount")
+    st.show_step("partial triangleCount")
     # triangles.show()
     count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
+    st.show_step("partial triangleCount sum")
     # count = triangles.sum("count").collect()[0]
     print("batch=", i, "vertices=", g1.vertices.count(), "edges=", g1.edges.count(), "partial", count)
     total += count
+
+s.show_step("triangleCount")
 
 print("total=", total)
 
