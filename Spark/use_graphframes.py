@@ -28,7 +28,9 @@ class Conf(object):
         self.partitions = 300
         self.graphs_base = "/user/chris.arnault/graphs"
         self.name = "test"
-        self.bt = 1
+        self.batches_for_triangles = 1
+        self.batch_at_restart = 0
+        self.count_at_restart = 0
         self.graphs = ""
 
     def set(self):
@@ -43,7 +45,14 @@ class Conf(object):
             elif key == "name" or key == "F" or key == "f":
                 self.name = a[1]
             elif key == "BT" or key == "bt":
-                self.bt = int(a[1])
+                # batches for triangles
+                self.batches_for_triangles = int(a[1])
+            elif key == "BS" or key == "bs":
+                # Batch number at restart
+                self.batch_at_restart = int(a[1])
+            elif key == "BC" or key == "bc":
+                # Triangle count at Batch restart
+                self.count_at_restart = int(a[1])
             elif key == "Args" or key == "args" or key == "A" or key == "a":
                 run = False
             elif key[:2] == "-h" or key[0] == "h":
@@ -51,6 +60,8 @@ class Conf(object):
 > python create_graphfames.py 
   partitions|P|p = 300
   BT|bt = 1          (batches for triangles)
+  BS|bs = 0          (for triangles: restart from batch number)
+  BC|bc = 0          (count for triangles at restart)
   name|F|f = "test"
                 ''')
                 exit()
@@ -119,38 +130,44 @@ n_vertices = vertices.count()
 # vertexDegrees.show()
 # s.show_step("Get a DataFrame with columns id and degree")
 
-
 """
-triangles = g.triangleCount()
-c = triangles.count()
-print("c=", c)
-triangles.show()
-s.show_step("Get triangle count")
+Pattern for batch oriented iteration
+
+- we split the graph into batches using the filterVertices mechanism
+- we mark the total count of triangles and the partial count
+- in case of error:
+   * we double the number of batches and the batch number
+   * we restart the iteration at this point with smaller subgraph
 """
 
-batches = conf.bt
+batches = conf.batches_for_triangles
 cells = 10000
-grid = cells/batches
 
 print("vertices=", vertices.count(), "batches=", batches)
 
-total = 0
-for i in range(batches):
+total = conf.count_at_restart
+batch = conf.batch_at_restart
+while batch < batches:
     gc.collect()
 
     st = Stepper()
-    g1 = g.filterVertices("int(cell/{}) == {}".format(grid, i))
+    g1 = g.filterVertices("int(cell/{}) == {}".format(cells / batches, batch))
     triangles = g1.triangleCount()
     st.show_step("partial triangleCount")
-    # count = triangles.count()
     count = 0
     try:
         count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
         st.show_step("partial triangleCount sum")
     except:
         print("memory error")
-    print("batch=", i, "vertices=", g1.vertices.count(), "edges=", g1.edges.count(), "partial", count)
+        batches *= 2
+        batch *= 2
+        continue
+
     total += count
+
+    print("batch=", batch, "vertices=", g1.vertices.count(), "edges=", g1.edges.count(), "total=", total, "partial", count)
+    batch += 1
 
 s.show_step("triangleCount")
 

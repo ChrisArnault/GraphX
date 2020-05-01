@@ -317,7 +317,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h0m1.735s</td>
 <td>0h0m24.630s</td>
 <td>0h0m59.007s</td>
-<td></td>
+<td>0h3m45.00s</td>
 </tr>
 <tr>
 <td>1000 000</td>
@@ -329,7 +329,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h0m1.918s</td>
 <td>0h0m45.455s</td>
 <td></td>
-<td></td>
+<td>5h</td>
 </tr>
 <tr>
 <td>10 000 000</td>
