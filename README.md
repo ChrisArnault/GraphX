@@ -145,6 +145,59 @@ Construction of large set of vertices and edges can be split in batches
 * subset dataframes are created
 * written (append mode) to hdfs(parquet)
 
+Iterative batch management
+--------------------------
+
+The batch management is meant to cope with limited memory in some complex operations that implies large shuffle or aggregations.
+
+Sometimes it's difficult to figure out or foresee the real memory needs (for instance, when the operation is hidden in a library)
+
+The following pattern helps:
+- we assume that the full set is keyed by a complete identifying value
+- first we split the full set of elements in the dataframe (using some filtering technique on the key)
+
+  - ``subset_size = int(full_size / batches)``
+  - construct subsets using filter with condition ``int(key/subset_size) == batch``
+
+- we iterate onto the serie
+- we apply the aggregation operation onto each subset
+
+  - if we detect memory error, we increase (x2) the batch number (= we lower the subset size)
+  - we adapt the batch number (x2)
+  - we re-apply the same iteration with the new conditions
+
+- this pattern may be saved at any step by saving the intermediate results and conditions and restarted later on
+
+example for the triangle count operation:
+
+    batches = conf.batches_for_triangles
+    total_triangles = conf.count_at_restart
+    batch = conf.batch_at_restart
+    full_set = 10000
+
+    subset = int(full_set / batches)
+    while batch < batches:
+        gc.collect()
+        g1 = g.filterVertices("int(cell/{}) == {}".format(subset, batch))
+        triangle_count = 0
+        try:
+            triangles = g1.triangleCount()
+            gc.collect()
+            triangle_count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
+        except:
+            print("memory error")
+            batches *= 2
+            batch *= 2
+            subset = int(full_set / batches)
+            print("restarting with batches=", batches, "subset=", subset, "at batch=", batch)
+            continue
+    
+        total_triangles += triangle_count
+    
+        print("batch=", batch, "total=", total_triangles, "partial", triangle_count)
+        batch += 1
+
+
 Results
 -------
 
@@ -329,7 +382,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h0m1.918s</td>
 <td>0h0m45.455s</td>
 <td></td>
-<td>5h</td>
+<td>3h26m40.596s</td>
 </tr>
 <tr>
 <td>10 000 000</td>

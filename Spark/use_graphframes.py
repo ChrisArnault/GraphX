@@ -140,43 +140,46 @@ Pattern for batch oriented iteration
    * we restart the iteration at this point with smaller subgraph
 """
 
-batches = conf.batches_for_triangles
-cells = 10000
-
 print("vertices=", vertices.count(), "batches=", batches)
 
-total = conf.count_at_restart
+full_set = 10000
+batches = conf.batches_for_triangles
+total_triangles = conf.count_at_restart
 batch = conf.batch_at_restart
-grid = int(cells / batches)
-while batch < batches:
-    gc.collect()
+subset = int(full_set / batches)
 
+while batch < batches:
     st = Stepper()
-    g1 = g.filterVertices("int(cell/{}) == {}".format(grid, batch))
-    triangles = g1.triangleCount()
-    st.show_step("partial triangleCount")
     count = 0
     try:
         gc.collect()
+        g1 = g.filterVertices("int(cell/{}) == {}".format(subset, batch))
+        triangles = g1.triangleCount()
+        st.show_step("partial triangleCount")
+        gc.collect()
         count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
         st.show_step("partial triangleCount sum")
+
+        total_triangles += count
+
+        print("batch=", batch,
+              "vertices=", g1.vertices.count(),
+              "edges=", g1.edges.count(),
+              "total=", total_triangles,
+              "partial", count)
     except:
         print("memory error")
         batches *= 2
         batch *= 2
-        grid = int(cells / batches)
-        print("restarting with batches=", batches, "grid=", grid, "at batch=", batch)
-        continue
+        subset = int(full_set / batches)
+        print("restarting with batches=", batches, "subset=", subset, "at batch=", batch)
+        if subset >= 1:
+            continue
 
-    total += count
-
-    print("batch=", batch, "vertices=", g1.vertices.count(), "edges=", g1.edges.count(), "total=", total, "partial", count)
     batch += 1
 
 s.show_step("triangleCount")
-
-print("total=", total)
-
+print("total=", total_triangles)
 
 spark.sparkContext.stop()
 
