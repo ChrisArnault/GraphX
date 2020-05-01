@@ -156,6 +156,7 @@ while batch < batches:
     st.show_step("partial triangleCount")
     count = 0
     try:
+        gc.collect()
         count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
         st.show_step("partial triangleCount sum")
     except:
