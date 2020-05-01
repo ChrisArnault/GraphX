@@ -140,9 +140,10 @@ Pattern for batch oriented iteration
    * we restart the iteration at this point with smaller subgraph
 """
 
-print("vertices=", vertices.count())
+vertices_count = vertices.count()
+print("vertices=", vertices_count)
 
-full_set = 10000
+full_set = vertices_count
 batches = conf.batches_for_triangles
 total_triangles = conf.count_at_restart
 batch = conf.batch_at_restart
@@ -154,7 +155,8 @@ while batch < batches:
     try:
         print("try batches=", batches, "subset=", subset, "at batch=", batch)
         gc.collect()
-        g1 = g.filterVertices("int(cell/{}) == {}".format(subset, batch))
+        # g1 = g.filterVertices("int(cell/{}) == {}".format(subset, batch))
+        g1 = g.filterVertices("int(id/{}) == {}".format(subset, batch))
         triangles = g1.triangleCount()
         st.show_step("partial triangleCount")
         gc.collect()
@@ -176,6 +178,7 @@ while batch < batches:
         print("restarting with batches=", batches, "subset=", subset, "at batch=", batch)
         if subset >= 1:
             continue
+        break
 
     batch += 1
 
