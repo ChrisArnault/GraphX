@@ -147,11 +147,12 @@ print("vertices=", vertices.count(), "batches=", batches)
 
 total = conf.count_at_restart
 batch = conf.batch_at_restart
+grid = int(cells / batches)
 while batch < batches:
     gc.collect()
 
     st = Stepper()
-    g1 = g.filterVertices("int(cell/{}) == {}".format(cells / batches, batch))
+    g1 = g.filterVertices("int(cell/{}) == {}".format(grid, batch))
     triangles = g1.triangleCount()
     st.show_step("partial triangleCount")
     count = 0
@@ -163,6 +164,8 @@ while batch < batches:
         print("memory error")
         batches *= 2
         batch *= 2
+        grid = int(cells / batches)
+        print("restarting with batches=", batches, "grid=", grid, "at batch=", batch)
         continue
 
     total += count
