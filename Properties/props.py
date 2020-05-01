@@ -3,17 +3,21 @@ import random
 import numpy as np
 from matplotlib import pyplot as plt
 
-N = 100
+N = 50
 P = 10
 
 randx = lambda: np.random.random()
 randy = lambda: np.random.random()
 
-object_properties = lambda : [p for p in random.sample(range(P), int(random.randint(0, P)/4)) ]
+# Create objects
+
+object_properties = lambda : [p for p in random.sample(range(P), int(random.randint(0, P)/3)) ]
 objects = {o: (randx(), randy(), object_properties()) for o in range(N)}
 
-for o in objects:
-    print("object=", o, objects[o])
+# for o in objects:
+#    print("object=", o, objects[o])
+
+# Create property base
 
 properties = dict()
 
@@ -27,9 +31,28 @@ for o in objects:
         olist.append(o)
         properties[p] = olist
 
+zone_id = 0
+zones = dict()
+
+for o in objects:
+    plist = objects[o][2]
+    plist.sort()
+    found = False
+    for id in zones:
+        zone = zones[id]
+        if zone == plist:
+            found = True
+            break
+    if not found:
+        zones[zone_id] = plist
+        zone_id += 1
+
+for id in zones:
+    print("zones", id, zones[id])
+
 edges = []
 for p in properties:
-    print("property=", p, properties[p])
+    # print("property=", p, properties[p])
     olist = properties[p]
     def create_edge(olist):
         if len(olist) <= 1:
@@ -39,7 +62,10 @@ for p in properties:
         return head
     edges += create_edge(olist)
 
-print(edges)
+# print(edges)
+
+# ===============================================
+# Graphics
 
 fig, axe1 = plt.subplots(1, 1)
 
@@ -71,9 +97,10 @@ def onclick(event):
 
         if abs(_ox - _x) < epsilon and abs(_oy - _y) < epsilon:
             plist = obj[2]
-            print("o=", _o, "plist=", plist)
-            texts.append(axe1.text(_x, _y, "{}".format(_o), fontsize=14))
+            # print("o=", _o, "plist=", plist)
+            texts.append(axe1.text(_x, _y+0.02, "{}".format(_o), fontsize=14))
 
+    dx = 0.03
     for e in edges:
         o1 = objects[e[0]]
         o2 = objects[e[1]]
@@ -82,18 +109,30 @@ def onclick(event):
         x2 = o2[0]
         y2 = o2[1]
         a = (y1 - y2)/(x1 - x2)
-        b = y1 - a*x1
-        _ey = a*_x + b
-        if abs(_ey - _y) < epsilon:
-            print("e=", e)
-            texts.append(axe1.text(_x, _y, "{}".format(e), fontsize=14))
+        b1 = y1 - a*x1
+        b2 = y2 - a*x2
+        _ey1 = a*_x + b1
+        _ey2 = a*_x + b2
+        if (abs(_ey1 - _y) < epsilon and
+                (abs(_ey2 - _y) < epsilon) and
+                (_x >= min(x2, x1)) and
+                (_x <= max(x2, x1))):
+            # print("e=", e)
+            texts.append(axe1.text(_x+dx, _y-0.05, "{}".format(e), fontsize=14))
+            dx += 0.12
+
+    fig.canvas.draw()
 
 fig.canvas.mpl_connect('motion_notify_event', onclick)
 # fig.canvas.mpl_connect('button_press_event', onclick)
 
+# Draw objects
+
 for o in objects:
     obj = objects[o]
     axe1.scatter(obj[0], obj[1], s=3)
+
+# Draw links between objects
 
 for e in edges:
     o1 = e[0]

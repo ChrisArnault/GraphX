@@ -335,6 +335,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>write time</td>
 <td>degree</td>
 <td>triangles</td>
+<td># triangles</td>
 </thead>
 <tr>
 <td>1000</td>
@@ -346,7 +347,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h0m1.491s</td>
 <td>0h0m11.733s</td>
 <td>0h0m9.657s</td>
-<td>0h0m13.954s</td>
+<td>0h0m43.663s</td>
+<td>4912218</td>
 </tr>
 <tr>
 <td>10 000</td>
@@ -358,7 +360,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h0m1.551s</td>
 <td>0h0m19.689s</td>
 <td>0h0m11.036s</td>
-<td>0h2m37.422s</td>
+<td>0h4m45.836s</td>
+<td>50214139</td>
 </tr>
 <tr>
 <td>100 000</td>
@@ -370,7 +373,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h0m1.735s</td>
 <td>0h0m24.630s</td>
 <td>0h0m59.007s</td>
-<td>0h3m45.00s</td>
+<td>0h51m41.582s</td>
+<td>499196623</td>
 </tr>
 <tr>
 <td>1000 000</td>
@@ -383,6 +387,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h0m45.455s</td>
 <td></td>
 <td>3h26m40.596s</td>
+<td>5001347193</td>
 </tr>
 <tr>
 <td>10 000 000</td>
@@ -395,6 +400,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h17m27.193s</td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td>100 000 000</td>
@@ -405,6 +411,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>49 848 057 868</td>
 <td></td>
 <td>2h7h28.941s</td>
+<td></td>
 <td></td>
 <td></td>
 </tr>
