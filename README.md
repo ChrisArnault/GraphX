@@ -145,42 +145,44 @@ Construction of large set of vertices and edges can be split in batches
 * subset dataframes are created
 * written (append mode) to hdfs(parquet)
 
-Iterative batch management
---------------------------
+Adaptative batch management
+---------------------------
 
 The batch management is meant to cope with limited memory in some complex operations that implies large shuffle or aggregations.
 
 Sometimes it's difficult to figure out or foresee the real memory needs (for instance, when the operation is hidden in a library)
 
-The following pattern helps:
-- we assume that the full set is keyed by a complete identifying value
-- first we split the full set of elements in the dataframe (using some filtering technique on the key)
+The following adaptative pattern helps:
+- we assume that the full set is keyed by a completely identifying key
+- first we split the full set of elements in the dataframe (*using some filtering technique on the key*)
 
   - ``subset_size = int(full_size / batches)``
-  - construct subsets using filter with condition ``int(key/subset_size) == batch``
+  - construct subsets using filter with condition: ``int(key/subset_size) == batch``
 
-- we iterate onto the serie
-- we apply the aggregation operation onto each subset
+- we iterate on:
+  - we apply the aggregation operation onto each subset
 
-  - if we detect memory error, we increase (x2) the batch number (= we lower the subset size)
-  - we adapt the batch number (x2)
-  - we re-apply the same iteration with the new conditions
+    - if we detect memory error, we increase (x2) the batch number (= *we lower the subset size*)
+    - we adapt the batch number (x2)
+    - we continue the iteration with the new conditions
 
 - this pattern may be saved at any step by saving the intermediate results and conditions and restarted later on
 
 example for the triangle count operation:
 
+    full_set = N                            # by construction
     batches = conf.batches_for_triangles
-    total_triangles = conf.count_at_restart
-    batch = conf.batch_at_restart
-    full_set = 10000
+    total_triangles = conf.count_at_restart  # by default = 0
+    batch = conf.batch_at_restart            # by default = 0
 
     subset = int(full_set / batches)
     while batch < batches:
         try:
+            # ---------- extract the subset     
             gc.collect()
             g1 = g.filterVertices("int(cell/{}) == {}".format(subset, batch))
             triangles = g1.triangleCount()
+            # ---------- apply the aggregation
             gc.collect()
             triangle_count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
             total_triangles += triangle_count
@@ -188,12 +190,14 @@ example for the triangle count operation:
             batch += 1
         except:
             print("memory error")
+            # ----------- new conditions        
             batches *= 2
             batch *= 2
             subset = int(full_set / batches)
             print("restarting with batches=", batches, "subset=", subset, "at batch=", batch)
             if batches >= 1:
                 continue
+            # ----------- no way to get enough ressources: kill the iteration
             break
 
 
@@ -319,21 +323,22 @@ Results
 
 3. Varying the number of vertices and the max-degree for edges (and batches for edges)
 
-complete change in the strategy for the join (see the paragraph above)
+(see the paragraph above concerning batch oriented measurement)
 
 
 <table>
 <thead>
-<td>workers</td>
+<td>W</td>
 <td>vertices</td>
-<td>v_batches</td>
+<td>BV</td>
 <td>V time</td>
 <td>max_degree</td>
-<td>e_batches</td>
+<td>BE</td>
 <td>edges</td>
 <td>E time</td>
 <td>write time</td>
 <td>degree</td>
+<td>[degree]</td>
 <td>triangles</td>
 <td># triangles</td>
 </thead>
@@ -347,7 +352,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>1566</td>
 <td>0h0m1.491s</td>
 <td>0h0m11.733s</td>
-<td>0h0m4.119s</td>
+<td>0h0m2.765s</td>
+<td>2.622</td>
 <td>0h0m43.663s</td>
 <td>4912218</td>
 </tr>
@@ -361,7 +367,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>15 452</td>
 <td>0h0m1.551s</td>
 <td>0h0m19.689s</td>
-<td>0h0m2.492s</td>
+<td>0h0m14.672s</td>
+<td>3.917</td>
 <td>0h4m45.836s</td>
 <td>50214139</td>
 </tr>
@@ -375,7 +382,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>3 921 357</td>
 <td>0h0m1.735s</td>
 <td>0h0m24.630s</td>
-<td>0h0m6.428s</td>
+<td>0h0m12.618s</td>
+<td>78.427</td>
 <td>0h51m41.582s</td>
 <td>499196623</td>
 </tr>
@@ -389,7 +397,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>428 932 503</td>
 <td>0h0m1.918s</td>
 <td>0h0m45.455s</td>
-<td></td>
+<td>0h0m58.392s</td>
+<td>857.865</td>
 <td>3h26m40.596s</td>
 <td>5001347193</td>
 </tr>
@@ -403,7 +412,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>428 932 503</td>
 <td>0h0m1.918s</td>
 <td>0h0m45.455s</td>
-<td></td>
+<td>0h0m52.092s</td>
+<td>857.865</td>
 <td>0h19m13.099s</td>
 <td>5001347193</td>
 </tr>
@@ -417,7 +427,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>22 874 329 457</td>
 <td>0h0m2.784s</td>
 <td>0h17m27.193s</td>
-<td></td>
+<td>0h11m20.062s</td>
+<td>4574.866</td>
 <td>4h54h42.640s</td>
 <td>49987572968</td>
 </tr>
@@ -431,7 +442,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td>49 848 057 868</td>
 <td></td>
 <td>2h7h28.941s</td>
-<td></td>
+<td>0h22m31.931s</td>
+<td>996.961</td>
 <td>27h43h40.575s</td>
 <td>499 928 450 413</td>
 </tr>
