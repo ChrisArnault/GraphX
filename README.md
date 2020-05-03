@@ -335,7 +335,6 @@ Results
 <td>max_degree</td>
 <td>BE</td>
 <td>edges</td>
-<td>E time</td>
 <td>write time</td>
 <td>degree</td>
 <td>[degree]</td>
@@ -350,7 +349,6 @@ Results
 <td>1000</td>
 <td>1</td>
 <td>1566</td>
-<td>0h0m1.491s</td>
 <td>0h0m11.733s</td>
 <td>0h0m2.765s</td>
 <td>2.622</td>
@@ -365,7 +363,6 @@ Results
 <td>10 000</td>
 <td>1</td>
 <td>15 452</td>
-<td>0h0m1.551s</td>
 <td>0h0m19.689s</td>
 <td>0h0m14.672s</td>
 <td>3.917</td>
@@ -380,7 +377,6 @@ Results
 <td>100 000</td>
 <td>1</td>
 <td>3 921 357</td>
-<td>0h0m1.735s</td>
 <td>0h0m24.630s</td>
 <td>0h0m12.618s</td>
 <td>78.427</td>
@@ -395,7 +391,6 @@ Results
 <td>1000 000</td>
 <td>1</td>
 <td>428 932 503</td>
-<td>0h0m1.918s</td>
 <td>0h0m45.455s</td>
 <td>0h0m58.392s</td>
 <td>857.865</td>
@@ -410,7 +405,6 @@ Results
 <td>1000 000</td>
 <td>1</td>
 <td>428 932 503</td>
-<td>0h0m1.918s</td>
 <td>0h0m45.455s</td>
 <td>0h0m52.092s</td>
 <td>857.865</td>
@@ -425,7 +419,6 @@ Results
 <td>10 000 000</td>
 <td>1</td>
 <td>22 874 329 457</td>
-<td>0h0m2.784s</td>
 <td>0h17m27.193s</td>
 <td>0h11m20.062s</td>
 <td>4574.866</td>
@@ -440,7 +433,6 @@ Results
 <td>1000 000</td>
 <td>100</td>
 <td>49 848 057 868</td>
-<td></td>
 <td>2h7h28.941s</td>
 <td>0h22m31.931s</td>
 <td>996.961</td>
