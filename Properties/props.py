@@ -165,6 +165,12 @@ for i in range(100000):
     # print(z1, z2, z)
     # axe2.scatter(z1, z2, zdist(z1, z2))
 
+zarray = []
+for i in range(P):
+    for j in range(P-i, 1, -1):
+        z = float(i) / float(j)
+        zarray.append(z)
+
 min_dist = min(zarray)
 print("min dist", min_dist)
 
