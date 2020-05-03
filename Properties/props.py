@@ -111,12 +111,14 @@ class Zones(object):
         return min(self.distances)
 
     def plot_distances(self, axe: plt.Axes) -> None:
+        self.simulate_distances()
         a = np.array(self.distances)
         y, bins = np.histogram(a, P)
         x = bins[:-1] + 0.5 * (bins[1] - bins[0])
         # x = bins[:-1]
         # mean = np.sum(x * y) / a.size
         axe.plot(x, y, 'b-', label='data')
+        self.all_distances()
 
 
 def get_colors_names():

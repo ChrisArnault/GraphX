@@ -450,3 +450,29 @@ Using graphs
 A second application read vertex and edge dataframes and re-assemble graphframes and apply algorithms
 
 
+A topology for alerts and properties
+====================================
+
+- we have N alerts
+- we have P properties
+- every alert gets p properties (p <= P)
+
+- we define "zones" : the set of properties associated with an alert define a zone
+
+- we can define a distance between zones:
+  - number of properties NOT in common to the two zones (``symmetric_difference``)
+  - weighted by the sum of properties number of the two zones
+
+- since we have a finite set of different properties, the set of possible distance values is finite
+  - the length of a ``symmetric_difference`` is within the ``[0..P]`` range
+  - the maximum distance is 1 when there are no properties in common
+
+- we can compute the distance between two objects = distance of their zones
+- we can select all neighbour objects according a range of distance
+- we set a link between objects, when their zones is apart by a given distance or a range of distance
+
+An graphical application shows:
+- alerts and properties
+- links setup when selecting a range of distance
+
+![properties](Properties/application.png)
