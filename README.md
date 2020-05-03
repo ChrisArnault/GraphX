@@ -177,25 +177,24 @@ example for the triangle count operation:
 
     subset = int(full_set / batches)
     while batch < batches:
-        gc.collect()
-        g1 = g.filterVertices("int(cell/{}) == {}".format(subset, batch))
-        triangle_count = 0
         try:
+            gc.collect()
+            g1 = g.filterVertices("int(cell/{}) == {}".format(subset, batch))
             triangles = g1.triangleCount()
             gc.collect()
             triangle_count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
+            total_triangles += triangle_count
+            print("batch=", batch, "total=", total_triangles, "partial", triangle_count)
+            batch += 1
         except:
             print("memory error")
             batches *= 2
             batch *= 2
             subset = int(full_set / batches)
             print("restarting with batches=", batches, "subset=", subset, "at batch=", batch)
-            continue
-    
-        total_triangles += triangle_count
-    
-        print("batch=", batch, "total=", total_triangles, "partial", triangle_count)
-        batch += 1
+            if batches >= 1:
+                continue
+            break
 
 
 Results
@@ -325,6 +324,7 @@ complete change in the strategy for the join (see the paragraph above)
 
 <table>
 <thead>
+<td>workers</td>
 <td>vertices</td>
 <td>v_batches</td>
 <td>V time</td>
@@ -338,6 +338,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td># triangles</td>
 </thead>
 <tr>
+<td>4</td>
 <td>1000</td>
 <td>10</td>
 <td>0h0m1.491s</td>
@@ -351,6 +352,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>4912218</td>
 </tr>
 <tr>
+<td>4</td>
 <td>10 000</td>
 <td>10</td>
 <td>0h0m46.351s</td>
@@ -364,6 +366,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>50214139</td>
 </tr>
 <tr>
+<td>4</td>
 <td>100 000</td>
 <td>10</td>
 <td>0h0m49.201s</td>
@@ -377,6 +380,7 @@ complete change in the strategy for the join (see the paragraph above)
 <td>499196623</td>
 </tr>
 <tr>
+<td>4</td>
 <td>1000 000</td>
 <td>10</td>
 <td>0h1m24.758s</td>
@@ -390,6 +394,21 @@ complete change in the strategy for the join (see the paragraph above)
 <td>5001347193</td>
 </tr>
 <tr>
+<td>8</td>
+<td>1000 000</td>
+<td>10</td>
+<td>0h1m24.758s</td>
+<td>1000 000</td>
+<td>1</td>
+<td>428 932 503</td>
+<td>0h0m1.918s</td>
+<td>0h0m45.455s</td>
+<td></td>
+<td>0h19m13.099s</td>
+<td>5001347193</td>
+</tr>
+<tr>
+<td>4</td>
 <td>10 000 000</td>
 <td>10</td>
 <td>0h6m56.625s</td>
@@ -399,10 +418,11 @@ complete change in the strategy for the join (see the paragraph above)
 <td>0h0m2.784s</td>
 <td>0h17m27.193s</td>
 <td></td>
-<td></td>
-<td></td>
+<td>4h54h42.640s</td>
+<td>49987572968</td>
 </tr>
 <tr>
+<td>4</td>
 <td>100 000 000</td>
 <td>50</td>
 <td>1h6h44.922s</td>
@@ -412,8 +432,8 @@ complete change in the strategy for the join (see the paragraph above)
 <td></td>
 <td>2h7h28.941s</td>
 <td></td>
-<td></td>
-<td></td>
+<td>27h43h40.575s</td>
+<td>499 928 450 413</td>
 </tr>
 </table>
 

@@ -2,16 +2,17 @@
 import random
 import numpy as np
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
 
-N = 50
-P = 10
+N = 100
+P = 20
 
 randx = lambda: np.random.random()
 randy = lambda: np.random.random()
 
 # Create objects
 
-object_properties = lambda : [p for p in random.sample(range(P), int(random.randint(0, P)/3)) ]
+object_properties = lambda : [p for p in random.sample(range(P), int(random.randint(0, P))) ]
 objects = {o: (randx(), randy(), object_properties()) for o in range(N)}
 
 # for o in objects:
@@ -31,43 +32,38 @@ for o in objects:
         olist.append(o)
         properties[p] = olist
 
-zone_id = 0
 zones = dict()
 
+def zoneid(plist):
+    a = plist
+    a.sort()
+    return frozenset(a)
+
 for o in objects:
-    plist = objects[o][2]
-    plist.sort()
-    found = False
-    for id in zones:
-        zone = zones[id]
-        if zone == plist:
-            found = True
-            break
-    if not found:
-        zones[zone_id] = plist
-        zone_id += 1
+    zone = zoneid(objects[o][2])
+    # print("zone:", a, b, pset)
+    if zone not in zones:
+        zones[zone] = True
 
+"""
 for id in zones:
-    print("zones", id, zones[id])
+    print("zones", id)
+"""
 
-edges = []
-for p in properties:
-    # print("property=", p, properties[p])
-    olist = properties[p]
-    def create_edge(olist):
-        if len(olist) <= 1:
-            return []
-        head = [(olist[0], o) for o in olist[1:] if (olist[0], o) not in edges]
-        head += create_edge(olist[1:])
-        return head
-    edges += create_edge(olist)
+def zdist(z1, z2):
+    if len(z1) + len(z2) == 0:
+        return 0.0
+    else:
+        return float(len(z1.symmetric_difference(z2)))/float(len(z1) + len(z2))
 
 # print(edges)
 
 # ===============================================
 # Graphics
 
-fig, axe1 = plt.subplots(1, 1)
+# fig, axe2 = plt.subplots(1, 1)
+fig, (axe1, axe2) = plt.subplots(1, 2)
+# fig, (axe1, axe2) = plt.subplots(1, 2, subplot_kw={'projection': '3d', 'aspect': 'equal'})
 
 texts = None
 def onclick(event):
@@ -90,15 +86,18 @@ def onclick(event):
 
     texts = []
 
+    dx = 0
     for _o in objects:
         obj = objects[_o]
         _ox = obj[0]
         _oy = obj[1]
+        plist = obj[2]
 
         if abs(_ox - _x) < epsilon and abs(_oy - _y) < epsilon:
             plist = obj[2]
             # print("o=", _o, "plist=", plist)
-            texts.append(axe1.text(_x, _y+0.02, "{}".format(_o), fontsize=14))
+            texts.append(axe1.text(_x+dx, _y+0.02, "{}".format(_o), fontsize=14))
+            dx += 0.1
 
     dx = 0.03
     for e in edges:
@@ -118,19 +117,68 @@ def onclick(event):
                 (_x >= min(x2, x1)) and
                 (_x <= max(x2, x1))):
             # print("e=", e)
-            texts.append(axe1.text(_x+dx, _y-0.05, "{}".format(e), fontsize=14))
-            dx += 0.12
+            z1 = zoneid(o1[2])
+            z2 = zoneid(o2[2])
+            d = list(z1.symmetric_difference(z2))
+            texts.append(axe1.text(_x+dx, _y-0.05, "{}{}".format(e, d), fontsize=14))
+            dx += 0.15
 
     fig.canvas.draw()
 
 fig.canvas.mpl_connect('motion_notify_event', onclick)
 # fig.canvas.mpl_connect('button_press_event', onclick)
 
-# Draw objects
+
+"""
+xs = []
+ys = []
+zs = []
+
+s = len(zones.keys())
+
+x_vector = lambda grid_column, grid_size: (np.arange(0, grid_size, 1, float) / grid_size) + grid_column
+y_vector = lambda grid_row, grid_size: (np.arange(0, grid_size, 1, float) / grid_size) + grid_row
+
+vx = np.zeros(s)
+vy = np.zeros(s)
+vy = vy[:, np.newaxis]  # transpose y
+matrix = vx * vy
+"""
+zarray = []
+for i in range(100000):
+    zs = random.sample(zones.keys(), 2)
+    z1 = zs[0]
+    z2 = zs[1]
+    z = zdist(z1, z2)
+    zarray.append(z)
+    # print(z1, z2, z)
+    # axe2.scatter(z1, z2, zdist(z1, z2))
+
+min_dist = min(zarray)
+print("min dist", min_dist)
+
+a = np.array(zarray)
+y, bins = np.histogram(a, P)
+x = bins[:-1] + 0.5 * (bins[1] - bins[0])
+mean = np.sum(x * y) / a.size
+axe2.plot(x, y, 'b-', label='data')
+
+edges = []
 
 for o in objects:
-    obj = objects[o]
-    axe1.scatter(obj[0], obj[1], s=3)
+    obj1 = objects[o]
+    zone1 = zoneid(obj1[2])
+    for other in objects:
+        if other == o:
+            continue
+        obj2 = objects[other]
+        zone2 = zoneid(obj2[2])
+        try:
+            d = zdist(zone1, zone2)
+            if d == min_dist and (other, o) not in edges:
+                edges.append((o, other))
+        except:
+            print("zero")
 
 # Draw links between objects
 
@@ -140,6 +188,23 @@ for e in edges:
     src = objects[o1]
     dst = objects[o2]
     axe1.plot((src[0], dst[0]), (src[1], dst[1]))
+
+# Draw objects
+"""
+for o in objects:
+    obj = objects[o]
+    axe1.scatter(obj[0], obj[1], s=3)
+"""
+
+"""
+    xs.append(float(z1))
+    ys.append(float(z2))
+
+    matrix[z1, z2] = zdist(z1, z2)
+"""
+
+# print(np.array(xs).shape, np.array(ys).shape, matrix.shape)
+# axe2.plot_surface(x_vector(0, s), y_vector(0, s)[:, np.newaxis], matrix, color='r')
 
 plt.show()
 
