@@ -7,6 +7,7 @@ import gc
 
 has_spark = os.name != 'nt'
 
+
 if has_spark:
     from pyspark.sql import SparkSession
     from pyspark.sql.functions import *
@@ -31,9 +32,11 @@ class Conf(object):
         self.batches_for_triangles = 1
         self.batch_at_restart = 0
         self.count_at_restart = 0
+        self.degrees = True
+        self.triangles = True
         self.graphs = ""
 
-    def set(self):
+    def set(self) -> None:
         run = True
 
         for i, arg in enumerate(sys.argv[1:]):
@@ -44,6 +47,10 @@ class Conf(object):
                 self.partitions = int(a[1])
             elif key == "name" or key == "F" or key == "f":
                 self.name = a[1]
+            elif key == "D" or key == "d":
+                # only degree
+                self.degrees = True
+                self.triangles = False
             elif key == "BT" or key == "bt":
                 # batches for triangles
                 self.batches_for_triangles = int(a[1])
@@ -62,6 +69,7 @@ class Conf(object):
   BT|bt = 1          (batches for triangles)
   BS|bs = 0          (for triangles: restart from batch number)
   BC|bc = 0          (count for triangles at restart)
+  D|d = 0            (only degrees)
   name|F|f = "test"
                 ''')
                 exit()
@@ -79,7 +87,7 @@ class Stepper(object):
     def __init__(self):
         self.previous_time = time.time()
 
-    def show_step(self, label='Initial time'):
+    def show_step(self, label='Initial time') -> float:
         now = time.time()
         delta = now - self.previous_time
 
@@ -102,6 +110,70 @@ class Stepper(object):
 
         return delta
 
+
+def do_degrees(g: graphframes.GraphFrame, s: Stepper) -> None:
+    vertexDegrees = g.degrees
+    degrees = vertexDegrees.count()
+    vertexDegrees.show()
+    s.show_step("Get a DataFrame with columns id and degree")
+    mean = degrees.agg({"degree": "mean"}).toPandas()["mean(degree)"][0]
+    s.show_step("mean degree {}".format(mean))
+
+
+def do_triangles(conf: Conf, g: graphframes.GraphFrame, s: Stepper, vertices_count: int) -> None:
+    """
+    Pattern for batch oriented iteration
+
+    - we split the graph into batches using the filterVertices mechanism
+    - we mark the total count of triangles and the partial count
+    - in case of error:
+       * we double the number of batches and the batch number
+       * we restart the iteration at this point with smaller subgraph
+    """
+
+    full_set = vertices_count
+    batches = conf.batches_for_triangles
+    total_triangles = conf.count_at_restart
+    batch = conf.batch_at_restart
+    subset = int(full_set / batches)
+
+    while batch < batches:
+        st = Stepper()
+        count = 0
+        try:
+            print("try batches=", batches, "subset=", subset, "at batch=", batch)
+            gc.collect()
+            # g1 = g.filterVertices("int(cell/{}) == {}".format(subset, batch))
+            g1 = g.filterVertices("int(id/{}) == {}".format(subset, batch))
+            triangles = g1.triangleCount()
+            st.show_step("partial triangleCount")
+            gc.collect()
+            count = triangles.agg({"cell": "sum"}).toPandas()["sum(cell)"][0]
+            st.show_step("partial triangleCount sum")
+
+            total_triangles += count
+
+            print("batch=", batch,
+                  "vertices=", g1.vertices.count(),
+                  "edges=", g1.edges.count(),
+                  "total=", total_triangles,
+                  "partial", count)
+        except:
+            print("memory error")
+            batches *= 2
+            batch *= 2
+            subset = int(full_set / batches)
+            print("restarting with batches=", batches, "subset=", subset, "at batch=", batch)
+            if subset >= 1:
+                continue
+            break
+
+        batch += 1
+
+    s.show_step("triangleCount")
+    print("total=", total_triangles)
+
+
 s = Stepper()
 
 conf = Conf()
@@ -123,67 +195,14 @@ g.vertices.show(10)
 g.edges.show(10)
 s.show_step("Display the vertex and edge DataFrames")
 
-n_vertices = vertices.count()
-
-# vertexDegrees = g.degrees
-# vertexDegrees.count()
-# vertexDegrees.show()
-# s.show_step("Get a DataFrame with columns id and degree")
-
-"""
-Pattern for batch oriented iteration
-
-- we split the graph into batches using the filterVertices mechanism
-- we mark the total count of triangles and the partial count
-- in case of error:
-   * we double the number of batches and the batch number
-   * we restart the iteration at this point with smaller subgraph
-"""
-
 vertices_count = vertices.count()
 print("vertices=", vertices_count)
 
-full_set = vertices_count
-batches = conf.batches_for_triangles
-total_triangles = conf.count_at_restart
-batch = conf.batch_at_restart
-subset = int(full_set / batches)
+if conf.degrees:
+    do_degrees(g=g, s=s)
 
-while batch < batches:
-    st = Stepper()
-    count = 0
-    try:
-        print("try batches=", batches, "subset=", subset, "at batch=", batch)
-        gc.collect()
-        # g1 = g.filterVertices("int(cell/{}) == {}".format(subset, batch))
-        g1 = g.filterVertices("int(id/{}) == {}".format(subset, batch))
-        triangles = g1.triangleCount()
-        st.show_step("partial triangleCount")
-        gc.collect()
-        count = triangles.agg({"cell":"sum"}).toPandas()["sum(cell)"][0]
-        st.show_step("partial triangleCount sum")
-
-        total_triangles += count
-
-        print("batch=", batch,
-              "vertices=", g1.vertices.count(),
-              "edges=", g1.edges.count(),
-              "total=", total_triangles,
-              "partial", count)
-    except:
-        print("memory error")
-        batches *= 2
-        batch *= 2
-        subset = int(full_set / batches)
-        print("restarting with batches=", batches, "subset=", subset, "at batch=", batch)
-        if subset >= 1:
-            continue
-        break
-
-    batch += 1
-
-s.show_step("triangleCount")
-print("total=", total_triangles)
+if conf.triangles:
+    do_triangles(conf=conf, g=g, s=s, vertices_count=vertices_count)
 
 spark.sparkContext.stop()
 

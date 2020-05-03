@@ -459,6 +459,8 @@ space_grid_size = space.shape[0]
 
 fig, axe1 = plt.subplots(1, 1, subplot_kw={'projection': '3d', 'aspect': 'equal'})
 
+print("shape", mountain_space.x_vector(0, space_grid_size).shape, mountain_space.y_vector(0, space_grid_size)[:, np.newaxis].shape, space.shape)
+
 axe1.plot_surface(mountain_space.x_vector(0, space_grid_size),
                   mountain_space.y_vector(0, space_grid_size)[:, np.newaxis], space, color='r')
 
