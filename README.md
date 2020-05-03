@@ -355,7 +355,7 @@ Results
 <td>0h0m2.765s</td>
 <td>2.622</td>
 <td>0h0m43.663s</td>
-<td>4912218</td>
+<td>4 912 218</td>
 </tr>
 <tr>
 <td>4</td>
@@ -370,7 +370,7 @@ Results
 <td>0h0m14.672s</td>
 <td>3.917</td>
 <td>0h4m45.836s</td>
-<td>50214139</td>
+<td>50 214 139</td>
 </tr>
 <tr>
 <td>4</td>
@@ -385,7 +385,7 @@ Results
 <td>0h0m12.618s</td>
 <td>78.427</td>
 <td>0h51m41.582s</td>
-<td>499196623</td>
+<td>499 196 623</td>
 </tr>
 <tr>
 <td>4</td>
@@ -400,7 +400,7 @@ Results
 <td>0h0m58.392s</td>
 <td>857.865</td>
 <td>3h26m40.596s</td>
-<td>5001347193</td>
+<td>5 001 347 193</td>
 </tr>
 <tr>
 <td>8</td>
@@ -415,7 +415,7 @@ Results
 <td>0h0m52.092s</td>
 <td>857.865</td>
 <td>0h19m13.099s</td>
-<td>5001347193</td>
+<td>5 001 347 193</td>
 </tr>
 <tr>
 <td>4</td>
@@ -430,7 +430,7 @@ Results
 <td>0h11m20.062s</td>
 <td>4574.866</td>
 <td>4h54h42.640s</td>
-<td>49987572968</td>
+<td>49 987 572 968</td>
 </tr>
 <tr>
 <td>4</td>
