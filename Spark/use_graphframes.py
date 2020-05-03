@@ -114,9 +114,11 @@ class Stepper(object):
 def do_degrees(g: graphframes.GraphFrame, s: Stepper) -> None:
     vertexDegrees = g.degrees
     degrees = vertexDegrees.count()
-    vertexDegrees.show()
+    # vertexDegrees.show()
     s.show_step("Get a DataFrame with columns id and degree")
-    mean = vertexDegrees.agg({"degree": "mean"}).toPandas()["mean(degree)"][0]
+    meandf = vertexDegrees.agg({"degree": "mean"})
+    meandf.show()
+    mean = meandf.toPandas()["mean(degree)"][0]
     s.show_step("mean degree {}".format(mean))
 
 
