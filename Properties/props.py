@@ -2,6 +2,8 @@
 import random
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.widgets import Slider
+import matplotlib.colors as mcolors
 from mpl_toolkits.mplot3d import axes3d
 from typing import List, Tuple
 
@@ -117,13 +119,110 @@ class Zones(object):
         axe.plot(x, y, 'b-', label='data')
 
 
+def get_colors_names():
+    colors = mcolors.CSS4_COLORS
+    by_hsv = sorted((tuple(mcolors.rgb_to_hsv(mcolors.to_rgb(color))), name) for name, color in colors.items())
+    col = [name for hsv, name in by_hsv if hsv[2] <= 0.7]
+    return random.sample(col, len(col))
+
+
 zones = Zones()
 zones.fill_db(Alerts)
+
+
+color_names = get_colors_names()
+zarray = zones.all_distances()
+distance_color = {d:color_names[i % len(color_names)] for i, d in enumerate(zarray)}
+
+
+class Edges(object):
+    def __init__(self):
+        self.db = []
+        self.segments = []
+
+    def erase_segments(self) -> None:
+        for segment in self.segments:
+            for line in segment:
+                line.remove()
+        self.segments = []
+
+    def fill_db(self, alerts: Alerts, min_dist: float, max_dist: float) -> List[Tuple[int, int]]:
+        self.db = []
+
+        for a_id1 in alerts:
+            alert1 = alerts[a_id1]
+            zone1 = zoneid(alert1.properties)
+            for a_id2 in alerts:
+                if a_id2 == a_id1:
+                    continue
+                alert2 = alerts[a_id2]
+                zone2 = zoneid(alert2.properties)
+                try:
+                    d = zdist(zone1, zone2)
+                    color = distance_color[d]
+                    if d >= min_dist and d <= max_dist and (a_id2, a_id1, color) not in self.db:
+                        self.db.append((a_id1, a_id2, color))
+                except:
+                    pass
+                    # print("zero")
+
+        return self.db
+
+    def plot_db(self, axe: plt.Axes) -> None:
+        self.erase_segments()
+        for e in self.db:
+            a1 = e[0]
+            a2 = e[1]
+            color = e[2]
+            src = Alerts[a1]
+            dst = Alerts[a2]
+            self.segments.append(axe.plot((src.x, dst.x), (src.y, dst.y), color=color))
+
+
+edges = Edges()
 
 
 # ===============================================
 # Graphics
 # ===============================================
+
+class UpdateMaxSlider():
+    def __init__(self, fig, slider, other, axe):
+        self.fig = fig
+        self.slider = slider
+        self.other = other
+        self.axe = axe
+
+    def __call__(self, val):
+        if val < self.other.val:
+            val = self.other.val
+            self.slider.set_val(val)
+        print("max slider changed", val)
+
+        edges.fill_db(alerts=Alerts, min_dist=self.other.val, max_dist=self.slider.val)
+        edges.plot_db(axe=self.axe)
+
+        self.fig.canvas.draw()
+        self.fig.canvas.draw_idle()
+
+class UpdateMinSlider():
+    def __init__(self, fig, slider, other, axe):
+        self.fig = fig
+        self.slider = slider
+        self.other = other
+        self.axe = axe
+
+    def __call__(self, val):
+        if val > self.other.val:
+            val = self.other.val
+            self.slider.set_val(val)
+        print("min slider changed", val)
+
+        edges.fill_db(alerts=Alerts, min_dist=self.slider.val, max_dist=self.other.val)
+        edges.plot_db(axe=self.axe)
+
+        self.fig.canvas.draw()
+        self.fig.canvas.draw_idle()
 
 class Graphics(object):
     def __init__(self):
@@ -132,6 +231,17 @@ class Graphics(object):
         # self.fig, (self.axe1, self.axe2) = plt.subplots(1, 2, subplot_kw={'projection': '3d', 'aspect': 'equal'})
         self.texts = []
         self.fig.canvas.mpl_connect('motion_notify_event', self.onclick)
+        axcolor = 'lightgoldenrodyellow'
+        self.slider_max_axe = plt.axes([0.12, 0.95, 0.35, 0.03], facecolor=axcolor)
+        self.slider_min_axe = plt.axes([0.12, 0.90, 0.35, 0.03], facecolor=axcolor)
+
+        self.slider_max = Slider(self.slider_max_axe, 'Max dist', 0.0, 1.0, valinit=0)
+        self.slider_min = Slider(self.slider_min_axe, 'Min dist', 0.0, 1.0, valinit=0)
+        self.update_slider_max = UpdateMaxSlider(fig=self.fig, slider=self.slider_max, other=self.slider_min, axe=self.axe1)
+        self.update_slider_min = UpdateMinSlider(fig=self.fig, slider=self.slider_min, other=self.slider_max, axe=self.axe1)
+        self.slider_max.on_changed(self.update_slider_max)
+        self.slider_min.on_changed(self.update_slider_min)
+
 
     def erase_texts(self) -> None:
         for text in self.texts:
@@ -172,6 +282,7 @@ class Graphics(object):
                 dx += 0.1
 
         dx = 0.03
+        dy = 0
         for e in edges.db:
             alert1 = Alerts[e[0]]
             alert2 = Alerts[e[1]]
@@ -192,49 +303,21 @@ class Graphics(object):
                 z1 = zoneid(alert1.properties)
                 z2 = zoneid(alert2.properties)
                 d = list(z1.symmetric_difference(z2))
-                self.texts.append(self.axe1.text(_x + dx, _y - 0.05, "{}{}".format(e, d), fontsize=14))
-                dx += 0.15
+                eshort = (e[0], e[1])
+                t = "{}{}".format(eshort, d)
+                self.texts.append(self.axe1.text(_x + dx, _y - 0.05 - dy, t, fontsize=12))
+                dy += 0.03
 
         self.fig.canvas.draw()
 
 
 graphics = Graphics()
 
-
-class Edges(object):
-    def __init__(self):
-        self.db = []
-
-    def fill_db(self, alerts: Alerts, dist: float) -> List[Tuple[int, int]]:
-        for a_id1 in alerts:
-            alert1 = alerts[a_id1]
-            zone1 = zoneid(alert1.properties)
-            for a_id2 in alerts:
-                if a_id2 == a_id1:
-                    continue
-                alert2 = alerts[a_id2]
-                zone2 = zoneid(alert2.properties)
-                try:
-                    d = zdist(zone1, zone2)
-                    if d == dist and (a_id2, a_id1) not in self.db:
-                        self.db.append((a_id1, a_id2))
-                except:
-                    print("zero")
-
-        return self.db
-
-    def plot_db(self, axe: plt.Axes) -> None:
-        for e in self.db:
-            a1 = e[0]
-            a2 = e[1]
-            src = Alerts[a1]
-            dst = Alerts[a2]
-            axe.plot((src.x, dst.x), (src.y, dst.y))
-
-
-zarray = zones.all_distances()
 min_dist = zones.min_distances()
 print("min dist", min_dist)
+
+graphics.slider_max.set_val(min_dist)
+graphics.slider_min.set_val(min_dist)
 
 # plot the distribution of all possible distances between regions
 
@@ -244,13 +327,13 @@ graphics.draw_alerts()
 
 # construct edges between alerts at minimum distance
 
-edges = Edges()
-edges.fill_db(alerts=Alerts, dist=min_dist)
+edges.fill_db(alerts=Alerts, min_dist=min_dist, max_dist=min_dist)
 edges.plot_db(axe=graphics.axe1)
 
 # print(np.array(xs).shape, np.array(ys).shape, matrix.shape)
 # axe2.plot_surface(x_vector(0, s), y_vector(0, s)[:, np.newaxis], matrix, color='r')
 
+# plt.tight_layout()
 plt.show()
 
 
