@@ -455,13 +455,14 @@ A topology for alerts and properties
 
 - we have N alerts
 - we have P properties
-- every alert gets p properties (p <= P)
+- every alert gets p properties (p in [0..P])
 
-- we define "zones" : the set of properties associated with an alert define a zone
+- we define "zones" : the set of properties associated with an alert define a "zone"
 
 - we can define a distance between zones:
   - number of properties NOT in common to the two zones (``symmetric_difference``)
-  - weighted by the sum of properties number of the two zones
+  - weighted by the sum of property numbers of the two zones
+    - ``diff(z1, z2)/(len(z1) + len(z2))``
 
 - since we have a finite set of different properties, the set of possible distance values is finite
   - the length of a ``symmetric_difference`` is within the ``[0..P]`` range
@@ -474,5 +475,6 @@ A topology for alerts and properties
 An graphical application shows:
 - alerts and properties
 - links setup when selecting a range of distance
+- one color per distance value
 
 ![properties](Properties/application.png)
