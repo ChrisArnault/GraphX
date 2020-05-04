@@ -4,10 +4,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.widgets import Slider
 import matplotlib.colors as mcolors
-from mpl_toolkits.mplot3d import axes3d
-from typing import List, Tuple
+# from mpl_toolkits.mplot3d import axes3d
+from typing import List, Tuple, Optional
 
-N = 50
+N = 200
 P = 20
 
 randx = lambda: np.random.random()
@@ -37,14 +37,14 @@ Alerts = {a_id: Alert(randx(), randy(), object_properties()) for a_id in range(N
 properties = dict()
 
 
-for a_id in Alerts:
-    plist = Alerts[a_id].properties
+for alert_id in Alerts:
+    plist = Alerts[alert_id].properties
     for p in plist:
         if p in properties:
             olist = properties[p]
         else:
             olist = []
-        olist.append(a_id)
+        olist.append(alert_id)
         properties[p] = olist
 
 
@@ -64,21 +64,36 @@ def zdist(z1: frozenset, z2: frozenset) -> float:
         return float(len(z1.symmetric_difference(z2)))/float(len(z1) + len(z2))
 
 
+class Zone(object):
+    def __init__(self):
+        self.alerts = []
+
+    def add_alert(self, _alert_id: int) -> None:
+        if _alert_id not in self.alerts:
+            self.alerts.append(_alert_id)
+
+
 class Zones(object):
     def __init__(self):
         self.db = dict()
         self.distances = []
 
+    def get_zone(self, _zone_id: frozenset) -> Optional[Zone]:
+        if _zone_id in self.db:
+            return self.db[_zone_id]
+        return None
+
     def fill_db(self, alerts: Alerts) -> None:
-        for a_id in alerts:
-            zone = zoneid(alerts[a_id].properties)
+        for _alert_id in alerts:
+            zone = zoneid(alerts[_alert_id].properties)
             # print("zone:", a, b, pset)
             if zone not in self.db:
-                self.db[zone] = True
+                self.db[zone] = Zone()
+            self.db[zone].add_alert(_alert_id=_alert_id)
 
     def print_db(self) -> None:
-        for _id in self.db:
-            print("zones", _id)
+        for zone_id in self.db:
+            print("zones", zone_id)
 
     def simulate_distances(self) -> List[float]:
         self.distances = []
@@ -97,7 +112,7 @@ class Zones(object):
     def all_distances(self) -> List[float]:
         self.distances = []
         for i in range(1, P + 1):
-            for j in range(P - i, i - 1, -1):
+            for j in range(2*P, i - 1, -1):
                 z = float(i) / float(j)
                 if z not in self.distances:
                     self.distances.append(z)
@@ -134,7 +149,7 @@ zones.fill_db(Alerts)
 
 color_names = get_colors_names()
 zarray = zones.all_distances()
-distance_color = {d:color_names[i % len(color_names)] for i, d in enumerate(zarray)}
+distance_color = {d: color_names[i % len(color_names)] for i, d in enumerate(zarray)}
 
 
 class Edges(object):
@@ -148,25 +163,46 @@ class Edges(object):
                 line.remove()
         self.segments = []
 
-    def fill_db(self, alerts: Alerts, min_dist: float, max_dist: float) -> List[Tuple[int, int]]:
+    def fill_db_from_alerts(self, alerts: Alerts, _min_dist: float, _max_dist: float) -> List[Tuple[int, int, str]]:
         self.db = []
 
-        for a_id1 in alerts:
-            alert1 = alerts[a_id1]
+        for alert_id1 in alerts:
+            alert1 = alerts[alert_id1]
             zone1 = zoneid(alert1.properties)
-            for a_id2 in alerts:
-                if a_id2 == a_id1:
+            for alert_id2 in alerts:
+                if alert_id2 == alert_id1:
                     continue
-                alert2 = alerts[a_id2]
+
+                alert2 = alerts[alert_id2]
                 zone2 = zoneid(alert2.properties)
-                try:
-                    d = zdist(zone1, zone2)
-                    color = distance_color[d]
-                    if d >= min_dist and d <= max_dist and (a_id2, a_id1, color) not in self.db:
-                        self.db.append((a_id1, a_id2, color))
-                except:
-                    pass
-                    # print("zero")
+                d = zdist(zone1, zone2)
+                color = distance_color[d]
+                if (d >= _min_dist) and \
+                        (d <= _max_dist) and \
+                        ((alert_id2, alert_id1, color) not in self.db):
+                    self.db.append((alert_id1, alert_id2, color))
+
+        return self.db
+
+    def fill_db(self, _zones: Zones, _min_dist: float, _max_dist: float) -> List[Tuple[int, int, str]]:
+        self.db = []
+
+        for zone_id1 in _zones.db:
+            for zone_id2 in _zones.db:
+                if zone_id2 == zone_id1:
+                    continue
+                d = zdist(zone_id1, zone_id2)
+                if (d < _min_dist) or (d > _max_dist):
+                    continue
+                zone1 = _zones.get_zone(zone_id1)
+                zone2 = _zones.get_zone(zone_id2)
+                color = distance_color[d]
+                for _alert_id1 in zone1.alerts:
+                    for _alert_id2 in zone2.alerts:
+                        if _alert_id2 == _alert_id1:
+                            continue
+                        if (_alert_id2, _alert_id1, color) not in self.db:
+                            self.db.append((_alert_id1, _alert_id2, color))
 
         return self.db
 
@@ -188,43 +224,41 @@ edges = Edges()
 # Graphics
 # ===============================================
 
-class UpdateMaxSlider():
+class UpdateSlider(object):
     def __init__(self, fig, slider, other, axe):
         self.fig = fig
         self.slider = slider
         self.other = other
         self.axe = axe
 
+
+class UpdateMaxSlider(UpdateSlider):
     def __call__(self, val):
         if val < self.other.val:
             val = self.other.val
             self.slider.set_val(val)
-        print("max slider changed", val)
+        # print("max slider changed", val)
 
-        edges.fill_db(alerts=Alerts, min_dist=self.other.val, max_dist=self.slider.val)
+        edges.fill_db(_zones=zones, _min_dist=self.other.val, _max_dist=self.slider.val)
         edges.plot_db(axe=self.axe)
 
         self.fig.canvas.draw()
         self.fig.canvas.draw_idle()
 
-class UpdateMinSlider():
-    def __init__(self, fig, slider, other, axe):
-        self.fig = fig
-        self.slider = slider
-        self.other = other
-        self.axe = axe
 
+class UpdateMinSlider(UpdateSlider):
     def __call__(self, val):
         if val > self.other.val:
             val = self.other.val
             self.slider.set_val(val)
-        print("min slider changed", val)
+        # print("min slider changed", val)
 
-        edges.fill_db(alerts=Alerts, min_dist=self.slider.val, max_dist=self.other.val)
+        edges.fill_db(_zones=zones, _min_dist=self.slider.val, _max_dist=self.other.val)
         edges.plot_db(axe=self.axe)
 
         self.fig.canvas.draw()
         self.fig.canvas.draw_idle()
+
 
 class Graphics(object):
     def __init__(self):
@@ -239,11 +273,16 @@ class Graphics(object):
 
         self.slider_max = Slider(self.slider_max_axe, 'Max dist', 0.0, 1.0, valinit=0)
         self.slider_min = Slider(self.slider_min_axe, 'Min dist', 0.0, 1.0, valinit=0)
-        self.update_slider_max = UpdateMaxSlider(fig=self.fig, slider=self.slider_max, other=self.slider_min, axe=self.axe1)
-        self.update_slider_min = UpdateMinSlider(fig=self.fig, slider=self.slider_min, other=self.slider_max, axe=self.axe1)
+        self.update_slider_max = UpdateMaxSlider(fig=self.fig,
+                                                 slider=self.slider_max,
+                                                 other=self.slider_min,
+                                                 axe=self.axe1)
+        self.update_slider_min = UpdateMinSlider(fig=self.fig,
+                                                 slider=self.slider_min,
+                                                 other=self.slider_max,
+                                                 axe=self.axe1)
         self.slider_max.on_changed(self.update_slider_max)
         self.slider_min.on_changed(self.update_slider_min)
-
 
     def erase_texts(self) -> None:
         for text in self.texts:
@@ -265,8 +304,8 @@ class Graphics(object):
 
         _x: float = event.xdata
         _y: float = event.ydata
-        if _x < 0 and _x > 1:
-            if _y < 0 and _y > 1:
+        if (_x < 0) and (_x > 1):
+            if (_y < 0) and (_y > 1):
                 return
 
         epsilon = 0.01
@@ -329,7 +368,7 @@ graphics.draw_alerts()
 
 # construct edges between alerts at minimum distance
 
-edges.fill_db(alerts=Alerts, min_dist=min_dist, max_dist=min_dist)
+edges.fill_db(_zones=zones, _min_dist=min_dist, _max_dist=min_dist)
 edges.plot_db(axe=graphics.axe1)
 
 # print(np.array(xs).shape, np.array(ys).shape, matrix.shape)
