@@ -478,3 +478,8 @@ An graphical application shows:
 - one color per distance value
 
 ![properties](Properties/application.png)
+
+see:
+- https://spark.apache.org/docs/2.2.0/mllib-dimensionality-reduction.html
+
+

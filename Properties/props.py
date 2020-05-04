@@ -7,7 +7,7 @@ import matplotlib.colors as mcolors
 # from mpl_toolkits.mplot3d import axes3d
 from typing import List, Tuple, Optional
 
-N = 200
+N = 50
 P = 20
 
 randx = lambda: np.random.random()
@@ -132,6 +132,7 @@ class Zones(object):
         x = bins[:-1] + 0.5 * (bins[1] - bins[0])
         # x = bins[:-1]
         # mean = np.sum(x * y) / a.size
+        axe.set(title="Distances (simulation)")
         axe.plot(x, y, 'b-', label='data')
         self.all_distances()
 
@@ -262,14 +263,15 @@ class UpdateMinSlider(UpdateSlider):
 
 class Graphics(object):
     def __init__(self):
-        # self.fig, self.axe2 = plt.subplots(1, 1)
-        self.fig, (self.axe1, self.axe2) = plt.subplots(1, 2)
+        self.fig = plt.figure()
+        self.axe1 = plt.axes([0.08,0.1,0.4,0.72])
+        self.axe2 = plt.axes([0.55,0.1,0.4,0.85])
         # self.fig, (self.axe1, self.axe2) = plt.subplots(1, 2, subplot_kw={'projection': '3d', 'aspect': 'equal'})
         self.texts = []
         self.fig.canvas.mpl_connect('motion_notify_event', self.onclick)
         axcolor = 'lightgoldenrodyellow'
-        self.slider_max_axe = plt.axes([0.12, 0.95, 0.35, 0.03], facecolor=axcolor)
-        self.slider_min_axe = plt.axes([0.12, 0.90, 0.35, 0.03], facecolor=axcolor)
+        self.slider_max_axe = plt.axes([0.12, 0.94, 0.33, 0.03], facecolor=axcolor)
+        self.slider_min_axe = plt.axes([0.12, 0.89, 0.33, 0.03], facecolor=axcolor)
 
         self.slider_max = Slider(self.slider_max_axe, 'Max dist', 0.0, 1.0, valinit=0)
         self.slider_min = Slider(self.slider_min_axe, 'Min dist', 0.0, 1.0, valinit=0)
@@ -294,6 +296,7 @@ class Graphics(object):
             alert = Alerts[_alert_id]
             _alert_x = alert.x
             _alert_y = alert.y
+            self.axe1.set(title="Alerts & correlation with distance")
             self.axe1.scatter(_alert_x, _alert_y, s=1)
 
     def onclick(self, event) -> None:
