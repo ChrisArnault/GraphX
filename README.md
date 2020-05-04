@@ -1,6 +1,16 @@
 # GraphX
 Studies about Graph management, Pregel, Spark, Frames
 
+1. [Construct graph](#construct-graph)
+    1. [Vertices](#vertices)
+    1. [Edges](#edges)
+    1. [Other strategy for creating edges](#other-strategy-for-creating-edges)
+2. [Batch management](#batch-management)
+3. [Adaptative batch management](#adaptative-batch-management)
+4. [Application for GraphFrames](#application-for-graphframes)
+5. [Results](#results)
+6. [A topology for alerts and properties](#a-topology-for-alerts-and-properties)
+
 Construct graph
 ===============
 
@@ -136,6 +146,9 @@ To check the algorithm we make a graphical representation
         e = [plt.plot((e_src_x[i], e_dst_x[i]), (e_src_y[i], e_dst_y[i])) for i, x in enumerate(e_src_x)]
         plt.show()
 
+Application for GraphFrames
+===========================
+
 ![draw](doc/test2.png)
 
 Batch management
@@ -202,7 +215,7 @@ example for the triangle count operation:
 
 
 Results
--------
+=======
 
 1) Varying the number of vertices and the max-degree for edges (and batches for edges)
 
@@ -480,6 +493,6 @@ An graphical application shows:
 ![properties](Properties/application.png)
 
 see:
-- https://spark.apache.org/docs/2.2.0/mllib-dimensionality-reduction.html
+- [Dimensionality Reduction in Spark](https://spark.apache.org/docs/2.2.0/mllib-dimensionality-reduction.html)
 
 
