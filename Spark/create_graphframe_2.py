@@ -82,13 +82,11 @@ class Conf(object):
                 ''')
                 exit()
         print("graphs={}".format(self.graphs))
-        self.graphs = "{}/{}_N{}_BN{}_BE{}_D{}_G{}".format(self.graphs_base,
-                                                           self.name,
-                                                           self.vertices,
-                                                           self.batches_vertices,
-                                                           self.batches_edges,
-                                                           self.degree_max,
-                                                           self.grid)
+        self.graphs = "{}/{}_N{}_D{}".format(self.graphs_base,
+                                             self.name,
+                                             self.vertices,
+                                             self.degree_max,
+                                             self.grid)
         [print(a, "=", getattr(self, a)) for a in dir(self) if a[0] != '_']
         if not run:
             exit()
