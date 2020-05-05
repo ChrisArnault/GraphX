@@ -157,15 +157,20 @@ def get_file_size(directory, file):
 
 
 def edge_it(vertex_number, range_vertices, degree_max):
+    """
+    generate edges for a range of vertices up to a degree max
+    edges connect selected vertices to random vertices among the full set of vertices
+    """
     for v in range_vertices:
         m = random.randint(0, int(degree_max))
         j = 0
         while j < m:
             w = random.randint(0, vertex_number)
-            if w != v:
-                # print(v, w)
-                yield (v, w)
-                j += 1
+            if w == v:
+                continue
+            # print(v, w)
+            yield (v, w)
+            j += 1
 
 
 def xc(c, g):

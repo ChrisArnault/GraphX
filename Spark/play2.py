@@ -5,6 +5,7 @@ import sys
 import subprocess
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 has_spark = os.name != 'nt'
 
@@ -14,7 +15,6 @@ if has_spark:
     from pyspark.sql.types import *
     from pyspark.sql import SQLContext
     from pyspark.sql.functions import monotonically_increasing_id
-
     import graphframes
 
 if has_spark:
@@ -40,10 +40,8 @@ class Conf(object):
         self.degrees = True
         self.triangles = True
         self.graphs = ""
-
     def set(self) -> None:
         run = True
-
         for i, arg in enumerate(sys.argv[1:]):
             a = arg.split("=")
             # print(i, arg, a)
@@ -78,16 +76,14 @@ class Conf(object):
   name|F|f = "test"
                 ''')
                 exit()
-
         [print(a, "=", getattr(self, a)) for a in dir(self) if a[0] != '_']
-
         if not run:
             exit()
 
 conf = Conf()
 conf.set()
 
-conf.name = 'test_N1000_BN1_BE1_D1000_G10000'
+conf.name = 'test_N100000_BN10_BE1_D100000_G10000'
 
 file_name = conf.graphs_base + "/" + conf.name
 
@@ -99,19 +95,12 @@ edges = sqlContext.read.parquet(file_name + "/edges")
 # Create an identical GraphFrame.
 g = graphframes.GraphFrame(vertices, edges)
 
-g.vertices.show(10)
-g.edges.show(10)
-
-vertices_count = vertices.count()
-print("vertices=", vertices_count)
-
 vertexDegrees = g.degrees
-degrees = vertexDegrees.count()
 
-meandf = vertexDegrees.agg({"degree": "mean"})
-meandf.show()
-mean = meandf.toPandas()["avg(degree)"][0]
+p = vertexDegrees.toPandas()
+p.hist("degree", bins=30)
 
+plt.show()
 
 spark.sparkContext.stop()
 
