@@ -29,195 +29,88 @@ def wait():
         print("wait")
         time.sleep(3)
 
-N = 1000
-D = 1000
-partitions = 100
-cells = 10
-all_cells = cells*cells
+class Conf(object):
+    def __init__(self):
+        self.partitions = 300
+        self.graphs_base = "/user/chris.arnault/graphs"
+        self.name = "test"
+        self.batches_for_triangles = 1
+        self.batch_at_restart = 0
+        self.count_at_restart = 0
+        self.degrees = True
+        self.triangles = True
+        self.graphs = ""
 
-x = lambda : np.random.random()
-y = lambda : np.random.random()
-cell_id = lambda x, y: int(x*cells) + cells * int(y*cells)
+    def set(self) -> None:
+        run = True
 
+        for i, arg in enumerate(sys.argv[1:]):
+            a = arg.split("=")
+            # print(i, arg, a)
+            key = a[0]
+            if key == "partitions" or key == "P" or key == "p":
+                self.partitions = int(a[1])
+            elif key == "name" or key == "F" or key == "f":
+                self.name = a[1]
+            elif key == "D" or key == "d":
+                # only degree
+                self.degrees = True
+                self.triangles = False
+            elif key == "BT" or key == "bt":
+                # batches for triangles
+                self.batches_for_triangles = int(a[1])
+            elif key == "BS" or key == "bs":
+                # Batch number at restart
+                self.batch_at_restart = int(a[1])
+            elif key == "BC" or key == "bc":
+                # Triangle count at Batch restart
+                self.count_at_restart = int(a[1])
+            elif key == "Args" or key == "args" or key == "A" or key == "a":
+                run = False
+            elif key[:2] == "-h" or key[0] == "h":
+                print('''
+> python create_graphfames.py 
+  partitions|P|p = 300
+  BT|bt = 1          (batches for triangles)
+  BS|bs = 0          (for triangles: restart from batch number)
+  BC|bc = 0          (count for triangles at restart)
+  D|d = 0            (only degrees)
+  name|F|f = "test"
+                ''')
+                exit()
 
-base_vertex_values = lambda : [(v, x(), y()) for v in range(N)]
-vertex_values = lambda : [(v[0], v[1], v[2], cell_id(v[1], v[2])) for v in base_vertex_values()]
+        [print(a, "=", getattr(self, a)) for a in dir(self) if a[0] != '_']
 
-vertices = sqlContext.createDataFrame(vertex_values(), ["id", "x", "y", "cell"])
-n = vertices.rdd.getNumPartitions()
-print("partitions=", n)
+        if not run:
+            exit()
 
-vertices = vertices.repartition(partitions, "cell")
-n = vertices.rdd.getNumPartitions()
-print("partitions=", n)
+conf = Conf()
+conf.set()
 
-vertices.show()
+conf.name = 'test_N1000_BN1_BE1_D1000_G10000'
 
-"""
-for c in range(all_cells):
-    count = vertices.filter(vertices.cell == c).count()
-    if count > 0:
-        print(c, count)
-"""
+file_name = conf.graphs_base + "/" + conf.name
 
-def CellIterator(row0, col0, max_radius, cells):
-    radius = 0
-    while radius < max_radius:
-        if radius == 0:
-            lrow = row0
-            lcol = col0
-            if lrow >= 0 and lrow < cells and lcol >= 0 and lcol < cells:
-                yield radius, lrow, lcol
-        else:
-            row = -radius
-            for column in range(- radius, radius + 1):
-                lrow = row0 + row
-                lcol = col0 + column
-                if lrow >= 0 and lrow < cells and lcol >= 0 and lcol < cells:
-                    yield radius, lrow, lcol
-            column = radius
-            for row in range(-radius + 1, radius + 1):
-                lrow = row0 + row
-                lcol = col0 + column
-                if lrow >= 0 and lrow < cells and lcol >= 0 and lcol < cells:
-                    yield radius, lrow, lcol
-            row = radius
-            for column in range(radius - 1, -radius - 1, -1):
-                lrow = row0 + row
-                lcol = col0 + column
-                if lrow >= 0 and lrow < cells and lcol >= 0 and lcol < cells:
-                    yield radius, lrow, lcol
-            column = -radius
-            for row in range(radius - 1, -radius, -1):
-                lrow = row0 + row
-                lcol = col0 + column
-                if lrow >= 0 and lrow < cells and lcol >= 0 and lcol < cells:
-                    yield radius, lrow, lcol
-        radius += 1
+print("file_name=", file_name)
 
-"""
-for r, row, col in CellIterator(5, 8, 3, 8):
-    print(r, row, col)
-"""
+vertices = sqlContext.read.parquet(file_name + "/vertices")
+edges = sqlContext.read.parquet(file_name + "/edges")
 
-cell_width = 1/cells
-dist_max = 0.1
-maxr = dist_max/cell_width
+# Create an identical GraphFrame.
+g = graphframes.GraphFrame(vertices, edges)
 
-total = 0
-eid = 0
-df = None
-for row0 in range(cells):
-    for col0 in range(cells):
-        cell0 = col0 + cells * row0
-        src = vertices.filter(vertices.cell == cell0).\
-            withColumnRenamed("id", "src_id"). \
-            withColumnRenamed("cell", "src_cell")
-        if src.count() == 0:
-            continue
-        # src.show()
-        for r, row, col in CellIterator(row0, col0, 2, cells):
-            cell = col + cells * row
-            degree = np.random.randint(0, D)
-            fraction = float(degree)/N
-            print("fraction=", fraction)
-            dst = vertices.filter(vertices.cell == cell).\
-                withColumnRenamed("id", "dst_id"). \
-                withColumnRenamed("cell", "dst_cell").\
-                sample(False, fraction)
-            count = 0
-            if dst.count() == 0:
-                continue
-            # dst.show()
-            edges = src.join(dst, (dst.dst_id != src.src_id), how="inner"). \
-                select('src_id', "dst_id").\
-                withColumnRenamed("src_id", "src").\
-                withColumnRenamed("dst_id", "dst")
-            if df is None:
-                df = edges
-            else:
-                df = df.union(edges)
-            count = edges.count()
-            total += count
-            print("r0=", row0, "c0=", col0, "r=", row, "c=", col, "count=", count, "total=", total)
-        df.show()
+g.vertices.show(10)
+g.edges.show(10)
 
+vertices_count = vertices.count()
+print("vertices=", vertices_count)
 
-"""
-for i in l:
-    yield i
-"""
+vertexDegrees = g.degrees
+degrees = vertexDegrees.count()
 
-def func(p_list):
-    yield p_list
-
-x = vertices.repartition(partitions, vertices.id % 10)
-y = x.rdd.mapPartitions(func)
-
-degree = np.random.randint(0, D)
-fraction = float(degree) / N
-
-dst = vertices. \
-    withColumnRenamed("id", "dst_id"). \
-    withColumnRenamed("cell", "dst_cell"). \
-    sample(False, fraction)
-
-#                cell  row             col
-f1 = lambda x: [(i[0], i[3], int(i[3]/cells), i[3]%cells) for i in x]
-f2 = lambda x: [[(src, cell_src, row*cells+col) for r, row, col in CellIterator(row, col, 2, cells)] for src, cell_src, row, col in f1(x)]
-z = y.map(lambda x: f2(x))
-c = z.collect()
-d = z.flatMap(lambda x : x).flatMap(lambda x : x)
-ddf = sqlContext.createDataFrame(d, ['src_id', 'src_cell', 'dst_cell'])
-# ddf = ddf.join(dst, dst.dst_cell == ddf.dst_cell).select('src_id', 'dst_id')
-# ddf = ddf.withColumn('id', monotonically_increasing_id())
-df = ddf.join(dst, dst.dst_cell == ddf.dst_cell).select('src_id', 'dst_id'). \
-    withColumnRenamed("src_id", "src"). \
-    withColumnRenamed("dst_id", "dst"). \
-    withColumn('id', monotonically_increasing_id())
-
-for ic in c:
-    if len(ic) == 0:
-        continue
-    print("---------")
-    for jc in ic:
-        print("a", jc)
-
-"""
-[[], [], [], [], [], 
-[Row(id=35, x=0.07413584590669997, y=0.0005590032288271818, cell=0), Row(id=566, x=0.0871836469225078, y=0.06884292555826566, cell=0), Row(id=736, x=0.06935023370130589, y=0.09140834057995562, cell=0), Row(id=738, x=0.04855167720496423, y=0.025231678227210508, cell=0), Row(id=46, x=0.014870555986308709, y=0.027513331049781042, cell=0), Row(id=102, x=0.09684039402638045, y=0.008138223824768032, cell=0), Row(id=848, x=0.015988584529946115, y=0.004414593917120846, cell=0), Row(id=577, x=0.061422084104769126, y=0.08981124326951317, cell=0), Row(id=632, x=0.08776387926398022, y=0.047861308012999815, cell=0)], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
-"""
-
-mylist = np.random.random(20)
-rdd = sc.parallelize(mylist)
-t = rdd.mapPartitions(func)
-for i in t.collect():
-    print(i)
-
-
-def edge_it(vertices, range_vertices, degree_max):
-    for v in range_vertices:
-        m = random.randint(0, int(degree_max))
-        for j in range(m):
-            w = random.randint(0, vertices)
-            yield (v, w)
-
-
-edge_values = lambda : [(i, e[0], e[1]) for i, e in enumerate(edge_it(N, range(0, N), D))]
-
-edges = sqlContext.createDataFrame(edge_values(), ["id", "src", "dst"])
-edges = edges.repartition(partitions, "id")
-
-edges.show()
-
-src = vertices.alias("src")
-df = src.join(edges, (src.id == edges.src), how="inner")
-df.show()
-
-dst = vertices.alias("dst")
-df = dst.join(df, [(dst.id == df.dst)&(dst.area == df.area)], how="inner")
-
-df.show()
+meandf = vertexDegrees.agg({"degree": "mean"})
+meandf.show()
+mean = meandf.toPandas()["avg(degree)"][0]
 
 
 spark.sparkContext.stop()
