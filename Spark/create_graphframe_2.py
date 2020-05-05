@@ -38,7 +38,7 @@ class Conf(object):
         self.partitions = 1000
         self.file_format = "parquet"
         self.graphs_base = "/user/chris.arnault/graphs"
-        self.name = "test"
+        self.name = "test2"
         self.graphs = ""
         self.read_vertices = False
         self.grid = 10000
@@ -71,12 +71,10 @@ class Conf(object):
                 print('''
 > python create_graphfames.py 
   vertices|N|n = 1000
-  batches_vertices|BN|bn = 1
-  batches_edges|BE|be = 1
-  degree_max|D|d = 100
+  degree_max|D|d = 1000
   partitions|P|p = 1000
   grid|G|g = 10000
-  name|F|f = "test"
+  name|F|f = "test2"
   read_vertices|R|r = False
   Args|args|A|a  print only args (no run)
                 ''')
