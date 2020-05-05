@@ -146,11 +146,6 @@ To check the algorithm we make a graphical representation
         e = [plt.plot((e_src_x[i], e_dst_x[i]), (e_src_y[i], e_dst_y[i])) for i, x in enumerate(e_src_x)]
         plt.show()
 
-Application for GraphFrames
-===========================
-
-![draw](doc/test2.png)
-
 Batch management
 ----------------
 Construction of large set of vertices and edges can be split in batches
@@ -213,6 +208,11 @@ example for the triangle count operation:
             # ----------- no way to get enough ressources: kill the iteration
             break
 
+
+Application for GraphFrames
+===========================
+
+![draw](doc/test2.png)
 
 Results
 =======
