@@ -284,12 +284,20 @@ while True:
         print("join src & dst to create edges")
         e1 = src.join(dst, (src.src_id != dst.dst_id))
         print("select only neighbour cells")
-        e2 = e1.filter(neighbour(conf.g, src.src_cell, dst.dst_cell)).\
-            select('src_id', 'dst_id', 'src_cell', 'dst_cell').\
-            distinct()
-        e3 = e2.repartition(partitions, "src_id")
+        e2 = e1.withColumn("xc1", xc(e1.src_cell, conf.g)).\
+            withColumn("yc1", yc(e1.src_cell, conf.g)).\
+            withColumn("xc2", xc(e1.dst_cell, conf.g)).\
+            withColumn("yc2", yc(e1.dst_cell, conf.g))
+        e3 = e2.withColumn("dx", abs(e2.xc1 - e2.xc2)).\
+            withColumn("dy", abs(e2.yc1 - e2.yc2))
+        e4 = e3.filter((e3.src_cell == e3.dst_cell) |
+                       ((e3.dx == 0) & (e3.dy == 1)) |
+                       ((e3.dx == 1) & (e3.dy == 0)) |
+                       ((e3.dx == 1) & (e3.dy == 1)))
+        e5 = e4.select('src_id', 'dst_id', 'src_cell', 'dst_cell').distinct()
+        e6 = e5.repartition(partitions, "src_id")
         print("format edges")
-        edges = e3.withColumnRenamed("src_id", "src").\
+        edges = e6.withColumnRenamed("src_id", "src").\
             withColumnRenamed("dst_id", "dst").\
             withColumn('id', monotonically_increasing_id()).\
             select("id", "src", "dst")
