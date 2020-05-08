@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 import time
 import os
 import sys
@@ -121,7 +122,7 @@ def do_degrees(g: graphframes.GraphFrame, s: Stepper) -> None:
     vertexDegrees = g.degrees
     degrees = vertexDegrees.count()
     # vertexDegrees.show()
-    histo(degrees, "degree")
+    histo(vertexDegrees, "degree")
 
     s.show_step("Get a DataFrame with columns id and degree")
     meandf = vertexDegrees.agg({"degree": "mean"})
