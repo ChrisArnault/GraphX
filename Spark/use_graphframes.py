@@ -28,7 +28,7 @@ class Conf(object):
     def __init__(self):
         self.partitions = 300
         self.graphs_base = "/user/chris.arnault/graphs"
-        self.name = "test"
+        self.name = "test2"
         self.batches_for_triangles = 1
         self.batch_at_restart = 0
         self.count_at_restart = 0
@@ -111,10 +111,18 @@ class Stepper(object):
         return delta
 
 
+def histo(df, col):
+    _p = df.toPandas()
+    _p.hist(col)
+    plt.show()
+
+
 def do_degrees(g: graphframes.GraphFrame, s: Stepper) -> None:
     vertexDegrees = g.degrees
     degrees = vertexDegrees.count()
     # vertexDegrees.show()
+    histo(degrees, "degree")
+
     s.show_step("Get a DataFrame with columns id and degree")
     meandf = vertexDegrees.agg({"degree": "mean"})
     meandf.show()
