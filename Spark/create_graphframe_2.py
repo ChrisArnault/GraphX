@@ -272,21 +272,23 @@ while True:
         print("try with partitions=", partitions)
         # cleanup GC
         gc.collect()
-        # split the space into a matrix of square [g x g] cells
+        print("split the space into a matrix of square [g x g] cells")
         v2 = vertices.select("id", "cell", (vertices.cell/conf.g).alias("row"), (vertices.cell % conf.g).alias("col"))
-        # iterate around all cell (radius max = 2 => only one layer of neighbour cells)
+        print("iterate around all cell (radius max = 2 => only one layer of neighbour cells)")
         v3 = v2.rdd.map(iterate_cells).flatMap(lambda x: x)
-        # rename columns
+        print("rename columns")
         v4 = v3.toDF().toDF("src_id", "src_cell", "src_row", "src_col")
+        print("repartitions")
         src = v4.repartition(partitions, "src_id")
         dst = dst.repartition(partitions, "dst_id")
-        # join src & dst to create edges
+        print("join src & dst to create edges")
         e1 = src.join(dst, (src.src_id != dst.dst_id))
-        # select only neighbour cells
+        print("select only neighbour cells")
         e2 = e1.filter(neighbour(conf.g, src.src_cell, dst.dst_cell)).\
             select('src_id', 'dst_id', 'src_cell', 'dst_cell').\
             distinct()
         e3 = e2.repartition(partitions, "src_id")
+        print("format edges")
         edges = e3.withColumnRenamed("src_id", "src").\
             withColumnRenamed("dst_id", "dst").\
             withColumn('id', monotonically_increasing_id()).\
