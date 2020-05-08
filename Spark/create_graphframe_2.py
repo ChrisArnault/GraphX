@@ -99,6 +99,30 @@ class Conf(object):
             pass
 
 
+class Stepper(object):
+    previous_time = None
+    def __init__(self):
+        self.previous_time = time.time()
+    def show_step(self, label='Initial time'):
+        now = time.time()
+        delta = now - self.previous_time
+        if delta < 60:
+            t = '0h0m{:.3f}s'.format(delta)
+        elif delta < 3600:
+            m = int(delta / 60)
+            s = delta - (m*60)
+            t = '0h{}m{:.3f}s'.format(m, s)
+        else:
+            h = int(delta / 3600)
+            d = delta - (h*3600)
+            m = int(d / 60)
+            s = d - (m*60)
+            t = '{}h{}h{:.3f}s'.format(h, m, s)
+        print('--------------------------------', label, '|', t)
+        self.previous_time = now
+        return delta
+
+
 def histo(df, col):
     _p = df.toPandas()
     _p.hist(col)
@@ -230,6 +254,8 @@ conf.set()
 partitions = conf.partitions
 grid_size = conf.g
 
+stepper = Stepper()
+
 randx = lambda: np.random.random()
 randy = lambda: np.random.random()
 
@@ -243,6 +269,8 @@ vertex_values = lambda start, stop: [(v[0], v[1], v[2], cell(v[1], v[2])) for v 
 columns = ["id", "x", "y", "cell"]
 
 vertices = sqlContext.createDataFrame(vertex_values(0, conf.vertices), columns).repartition(partitions, "id")
+stepper.show_step("creating vertices")
+
 n = vertices.rdd.getNumPartitions()
 print("partitions=", n)
 
@@ -250,6 +278,8 @@ print("partitions=", n)
 file_name = "{}/{}".format(conf.graphs, "vertices")
 os.system("hdfs dfs -rm -r -f {}".format(file_name))
 vertices.write.format("parquet").save(file_name)
+
+stepper.show_step("save vertices")
 
 # =============================== edges
 
@@ -273,6 +303,7 @@ while True:
         # cleanup GC
         gc.collect()
         print("split the space into a matrix of square [g x g] cells")
+        stepper.show_step("start edges")
         v2 = vertices.select("id", "cell", (vertices.cell/conf.g).alias("row"), (vertices.cell % conf.g).alias("col"))
         print("iterate around all cell (radius max = 2 => only one layer of neighbour cells)")
         v3 = v2.rdd.map(iterate_cells).flatMap(lambda x: x)
@@ -301,6 +332,11 @@ while True:
             withColumnRenamed("dst_id", "dst").\
             withColumn('id', monotonically_increasing_id()).\
             select("id", "src", "dst")
+        stepper.show_step("created edges")
+        file_name = "{}/{}".format(conf.graphs, "edges")
+        os.system("hdfs dfs -rm -r -f {}".format(file_name))
+        edges.write.format("parquet").save(file_name)
+        stepper.show_step("saved edges")
         break
     except:
         partitions *= 2
@@ -310,13 +346,12 @@ while True:
 
 
 if edges is not None:
-    file_name = "{}/{}".format(conf.graphs, "edges")
-    os.system("hdfs dfs -rm -r -f {}".format(file_name))
-    edges.write.format("parquet").save(file_name)
-
     graph = graphframes.GraphFrame(vertices, edges)
     deg = graph.degrees
+    stepper.show_step("count degrees")
     p = deg.filter(deg.degree > 1).toPandas()
     p.hist("degree", bins=30)
+    stepper.show_step("histo edges")
+
 
 spark.sparkContext.stop()
