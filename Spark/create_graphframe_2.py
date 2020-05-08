@@ -3,6 +3,7 @@ import time
 import os
 import sys
 import subprocess
+import gc
 
 import numpy as np
 
@@ -17,6 +18,7 @@ if has_spark:
     from matplotlib import pyplot as plt
     import graphframes
 
+
 if has_spark:
     spark = SparkSession.builder.appName("GraphX").getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
@@ -24,10 +26,12 @@ if has_spark:
     sqlContext = SQLContext(spark.sparkContext)
     spark.conf.set("spark.sql.crossJoin.enabled", True)
 
+
 def wait():
     while True:
         print("wait")
         time.sleep(3)
+
 
 class Conf(object):
     def __init__(self):
@@ -35,7 +39,7 @@ class Conf(object):
         self.batches_vertices = 1
         self.batches_edges = 1
         self.degree_max = self.vertices
-        self.partitions = 1000
+        self.partitions = 100
         self.file_format = "parquet"
         self.graphs_base = "/user/chris.arnault/graphs"
         self.name = "test2"
@@ -69,7 +73,7 @@ class Conf(object):
                 run = False
             elif key[:2] == "-h" or key[0] == "h":
                 print('''
-> python create_graphfames.py 
+> python create_graphfames_2.py 
   vertices|N|n = 1000
   degree_max|D|d = 1000
   partitions|P|p = 1000
@@ -80,11 +84,10 @@ class Conf(object):
                 ''')
                 exit()
         print("graphs={}".format(self.graphs))
-        self.graphs = "{}/{}_N{}_D{}".format(self.graphs_base,
-                                             self.name,
-                                             self.vertices,
-                                             self.degree_max,
-                                             self.grid)
+        conf.graphs = "{}/{}_N{}_D{}".format(conf.graphs_base,
+                                             conf.name,
+                                             conf.vertices,
+                                             conf.degree_max)
         [print(a, "=", getattr(self, a)) for a in dir(self) if a[0] != '_']
         if not run:
             exit()
@@ -97,8 +100,8 @@ class Conf(object):
 
 
 def histo(df, col):
-    p = df.toPandas()
-    p.hist(col)
+    _p = df.toPandas()
+    _p.hist(col)
     plt.show()
 
 
@@ -110,54 +113,113 @@ def yc(c, g):
     return c / g
 
 
-def neighbour(g, c1, c2):
-    t1 = c1 == c2
+def cyclic_neighbour(g, c1, c2) -> bool:
+    """
+    - A square cyclic matrix of g cells
+    - test if the two cells c1 & c2 are neighbours
+    - cases:
+       + C center
+       + T top
+       + B bottom
+       + L left
+       + R right
+       + TL, TR, BL, BR
+    """
+    t: bool = c1 == c2
+    if t:
+        return True                 # C, C
     dx = abs(xc(c1, g) - xc(c2, g))
     dy = abs(yc(c1, g) - yc(c2, g))
-    t2 = (dx == 0) & (dy == 1)
-    t3 = (dx == 0) & (dy == g - 1)
-    t4 = (dx == 1) & (dy == 0)
-    t5 = (dx == g - 1) & (dy == 0)
-    t6 = (dx == 1) & (dy == 1)
-    t7 = (dx == 1) & (dy == g - 1)
-    t8 = (dx == g - 1) & (dy == 1)
-    t9 = (dx == g - 1) & (dy == g - 1)
-    # print(t1, t2, t3, t4, t5, t6, t7, t8, t9)
-    return t1 | t2 | t3 | t4 | t5 | t6 | t7 | t8 | t9
+    t = (dx == 0) & (dy == 1)
+    if t:
+        return True                 # C, C
+    t = (dx == 0) & (dy == g - 1)
+    if t:
+        return True                 # T, B
+    t = (dx == 1) & (dy == 0)
+    if t:
+        return True                 # C, C
+    t = (dx == g - 1) & (dy == 0)
+    if t:
+        return True                 # L, R
+    t = (dx == 1) & (dy == 1)
+    if t:
+        return True                 # C, C
+    t = (dx == 1) & (dy == g - 1)
+    if t:
+        return True                 # T, B
+    t = (dx == g - 1) & (dy == 1)
+    if t:
+        return True                 # L, R
+    t = (dx == g - 1) & (dy == g - 1)
+    return t                        # TL, TR, BL, BR
+
+
+def neighbour(g, c1, c2) -> bool:
+    """
+    - A square non-cyclic matrix of g cells
+    - test if the two cells c1 & c2 are neighbours
+    - cases:
+       + C center
+       + T top
+       + B bottom
+       + L left
+       + R right
+       + TL, TR, BL, BR
+    """
+    t: bool = c1 == c2
+    if t:
+        return True                 # C, C
+    dx = abs(xc(c1, g) - xc(c2, g))
+    dy = abs(yc(c1, g) - yc(c2, g))
+    t = (dx == 0) & (dy == 1)
+    if t:
+        return True                 # C, C
+    t = (dx == 1) & (dy == 0)
+    if t:
+        return True                 # C, C
+    t = (dx == 1) & (dy == 1)
+    return t                        # TL, TR, BL, BR
 
 
 def cell_iterator(start_row, start_col, max_radius, _cells):
+    """
+    - A square matrix of cells
+    - iterate increasing radius around a starting cell (start_row, start_col) counter-clock wise
+    - at each radius start from BL corner
+    - up to a max_radius
+    """
     radius = 0
     while radius < max_radius:
         if radius == 0:
             lrow = start_row
             lcol = start_col
-            if lrow >= 0 and lrow < _cells and lcol >= 0 and lcol < _cells:
+            if (lrow >= 0) and (lrow < _cells) and (lcol >= 0) and (lcol < _cells):
                 yield radius, lrow, lcol
         else:
             row = -radius
             for column in range(- radius, radius + 1):
                 lrow = start_row + row
                 lcol = start_col + column
-                if lrow >= 0 and lrow < _cells and lcol >= 0 and lcol < _cells:
+                if (lrow >= 0) and (lrow < _cells) and (lcol >= 0) and (lcol < _cells):
                     yield radius, lrow, lcol
             column = radius
             for row in range(-radius + 1, radius + 1):
                 lrow = start_row + row
                 lcol = start_col + column
-                if lrow >= 0 and lrow < _cells and lcol >= 0 and lcol < _cells:
+                if (lrow >= 0) and (lrow < _cells) and (lcol >= 0) and (lcol < _cells):
                     yield radius, lrow, lcol
             row = radius
             for column in range(radius - 1, -radius - 1, -1):
                 lrow = start_row + row
                 lcol = start_col + column
-                if lrow >= 0 and lrow < _cells and lcol >= 0 and lcol < _cells:
+                if (lrow >= 0) and (lrow < _cells) and (lcol >= 0) and (lcol < _cells):
                     yield radius, lrow, lcol
             column = -radius
             for row in range(radius - 1, -radius, -1):
                 lrow = start_row + row
                 lcol = start_col + column
-                if lrow >= 0 and lrow < _cells and lcol >= 0 and lcol < _cells:
+                if (lrow >= 0) and (lrow < _cells) and (lcol >= 0) and (lcol < _cells):
                     yield radius, lrow, lcol
         radius += 1
 
@@ -167,62 +229,83 @@ conf.set()
 
 partitions = conf.partitions
 grid_size = conf.g
-all_cells = conf.grid
 
 randx = lambda: np.random.random()
 randy = lambda: np.random.random()
 
 cell = lambda x, y: int(x*conf.g) + conf.g * int(y*conf.g)     # cell index
 
-# -------------- Vertices
+# =============================== Vertices
 
 base_vertex_values = lambda start, stop: [(v, randx(), randy()) for v in range(start, stop)]
 vertex_values = lambda start, stop: [(v[0], v[1], v[2], cell(v[1], v[2])) for v in base_vertex_values(start, stop)]
 
 columns = ["id", "x", "y", "cell"]
 
-vertices = sqlContext.createDataFrame(vertex_values(0, conf.vertices), columns).repartition(conf.grid, "cell")
+vertices = sqlContext.createDataFrame(vertex_values(0, conf.vertices), columns).repartition(partitions, "id")
 n = vertices.rdd.getNumPartitions()
 print("partitions=", n)
+
+# save vertices
+file_name = "{}/{}".format(conf.graphs, "vertices")
+os.system("hdfs dfs -rm -r -f {}".format(file_name))
+vertices.write.format("parquet").save(file_name)
+
+# =============================== edges
 
 degree = np.random.randint(0, conf.degree_max)
 fraction = float(degree) / conf.vertices
 
+# select a fraction of all vertices to make them destination edges
 dst = vertices. \
     withColumnRenamed("id", "dst_id"). \
     withColumnRenamed("cell", "dst_cell"). \
     sample(False, fraction)
 
-v2 = vertices.select("id", "cell", (vertices.cell/conf.g).alias("row"), (vertices.cell % conf.g).alias("col"))
-v3 = v2.rdd.map(lambda x: [(x[0], x[1], _row, _col) for r, _row, _col in cell_iterator(int(x[2]), x[3], 2, conf.g)]).flatMap(lambda x: x)
-v4 = v3.toDF().toDF("src_id", "src_cell", "src_row", "src_col")
-src = v4.repartition(all_cells, "src_cell")
-dst = dst.repartition(all_cells, "dst_cell")
+iterate_cells = lambda x: [(x[0], x[1], _row, _col) for r, _row, _col in cell_iterator(int(x[2]), x[3], 2, conf.g)]
 
-e1 = src.join(dst, (src.src_id != dst.dst_id))
-e2 = e1.repartition(all_cells, "src_cell")
+partitions = 100
+edges = None
 
-e3 = e2.filter(neighbour(conf.g, src.src_cell, dst.dst_cell)).select('src_id', 'dst_id', 'src_cell', 'dst_cell').distinct()
-e4 = e3.repartition(all_cells, "src_cell")
-edges = e4.withColumnRenamed("src_id", "src").withColumnRenamed("dst_id", "dst").withColumn('id', monotonically_increasing_id()).select("id", "src", "dst")
+while True:
+    try:
+        # cleanup GC
+        gc.collect()
+        # split the space into a matrix of square [g x g] cells
+        v2 = vertices.select("id", "cell", (vertices.cell/conf.g).alias("row"), (vertices.cell % conf.g).alias("col"))
+        # iterate around all cell (radius max = 2 => only one layer of neighbour cells)
+        v3 = v2.rdd.map(iterate_cells).flatMap(lambda x: x)
+        # rename columns
+        v4 = v3.toDF().toDF("src_id", "src_cell", "src_row", "src_col")
+        src = v4.repartition(partitions, "src_id")
+        dst = dst.repartition(partitions, "dst_id")
+        # join src & dst to create edges
+        e1 = src.join(dst, (src.src_id != dst.dst_id))
+        # select only neighbour cells
+        e2 = e1.filter(neighbour(conf.g, src.src_cell, dst.dst_cell)).\
+            select('src_id', 'dst_id', 'src_cell', 'dst_cell').\
+            distinct()
+        e3 = e2.repartition(partitions, "src_id")
+        edges = e3.withColumnRenamed("src_id", "src").\
+            withColumnRenamed("dst_id", "dst").\
+            withColumn('id', monotonically_increasing_id()).\
+            select("id", "src", "dst")
+        break
+    except:
+        partitions *= 2
+        if partitions > int(conf.vertices/10):
+            print("Memory exhausted partitions=", partitions)
+            break
 
-conf.graphs = "{}/{}_N{}_D{}".format(conf.graphs_base,
-                                     "test2",
-                                     conf.vertices,
-                                     conf.degree_max)
 
-directory = conf.graphs
+if edges is not None:
+    file_name = "{}/{}".format(conf.graphs, "edges")
+    os.system("hdfs dfs -rm -r -f {}".format(file_name))
+    edges.write.format("parquet").save(file_name)
 
-file_name = "{}/{}".format(directory, "vertices")
-os.system("hdfs dfs -rm -r -f {}".format(file_name))
-vertices.write.format("parquet").save(file_name)
+    graph = graphframes.GraphFrame(vertices, edges)
+    deg = graph.degrees
+    p = deg.filter(deg.degree > 1).toPandas()
+    p.hist("degree", bins=30)
 
-file_name = "{}/{}".format(directory, "edges")
-os.system("hdfs dfs -rm -r -f {}".format(file_name))
-edges.write.format("parquet").save(file_name)
-
-graph = graphframes.GraphFrame(vertices, edges)
-deg = graph.degrees
-p = deg.filter(deg.degree > 1).toPandas()
-
-p.hist("degree", bins=30)
+spark.sparkContext.stop()
