@@ -269,6 +269,7 @@ edges = None
 
 while True:
     try:
+        print("try with partitions=", partitions)
         # cleanup GC
         gc.collect()
         # split the space into a matrix of square [g x g] cells
